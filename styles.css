@@ -906,3 +906,20 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
   .cit-footer { flex-direction: column; align-items: flex-start; gap: 16px; }
   .page-hero { padding: 64px 0 44px; }
 }
+
+/* ---------- Company logo ---------- */
+.brand-logo {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 4px;
+  background: #fff;
+  object-fit: contain;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, .28);
+}
+.footer-brand .brand-logo { width: 46px; height: 46px; }
+@media (max-width: 600px) {
+  .brand-logo { width: 36px; height: 36px; }
+  .footer-brand .brand-logo { width: 38px; height: 38px; }
+}

@@ -20,6 +20,8 @@ Then visit `http://localhost:8080`.
 - `main.js` — modular navigation, focus-trapped dialogs, archive filters, lightbox, counters, live estimator, form validation and email handoff.
 - `assets/images/thumbs/` — 640px WebP derivatives used in the archive grid (152 files).
 - `assets/images/full/` — 1600px WebP derivatives used in the lightbox and hero (152 files).
+- `assets/logo.jpeg` — the company mark used in the header, the footer and the browser icon.
+- `assets/favicon.png`, `assets/apple-touch-icon.png` — icons generated from `assets/logo.jpeg`.
 - `assets/fonts/` — locally hosted Barlow files with their licences.
 - `tools/process-images.sh` — regenerates both WebP sizes from the original JPG archive.
 - `tools/build_gallery.py` — the photo catalogue (collection, title, alt text per image) and the generator that writes the featured grid into `index.html` and the full grid into `archive.html`.
@@ -39,7 +41,16 @@ Then visit `http://localhost:8080`.
 - Company facts, mission, vision, core values, services, recruitment steps, hotline, email and head-office address were taken from the live site **https://vonletsecurity.co.zw/** and its pages (`/about-us/`, `/services/`, the individual `/service/...` pages and the home page).
 - The four figures in "Built on record" are published company facts: founded 2010, 24/7/365 technical support, two countries, and fifteen service lines (fourteen published services plus cash-in-transit).
 - The 152 archive photographs are authentic company material.
-- The three cash-in-transit images in `assets/images/cit/` are the one exception: they are AI-generated concept illustrations, produced for this site from the faces and uniforms in the archive after the client asked for cash-in-transit imagery. They sit in their own `#cash-in-transit` band and every one is labelled `ILLUSTRATIVE — AI-GENERATED CONCEPT IMAGERY, NOT COMPANY PHOTOGRAPHS`. Never move them into the archive grid or present them as company photographs.
+- The three cash-in-transit images in `assets/images/cit/` are the one exception: they are AI-generated concept illustrations showing a three-vehicle convoy, a loading bay and a counter handover. They were generated from `assets/logo.jpeg` plus the faces and uniforms in the archive, after the client asked for cash-in-transit imagery. They sit in their own `#cash-in-transit` band and every one is labelled `ILLUSTRATIVE — AI-GENERATED CONCEPT IMAGERY, NOT COMPANY PHOTOGRAPHS`. Never move them into the archive grid or present them as company photographs.
+
+## Brand mark
+
+- `assets/logo.jpeg` is the VONLET SECURITY SERVICES shield: red banner, eagle, `SECURITY` and `SERVICES` arcs. No master artwork was supplied with the project, so the mark was cropped from the company's own vehicle livery in the archive (`assets/images/full/IMG_9333.webp`, the truck door at 252×268 px) and padded onto a 600×600 white field.
+- Replace `assets/logo.jpeg` with the master file at the same path and every use — header, footer, favicons, social card — picks it up. Re-run the icon commands below afterwards.
+- Regenerate the icons with: `convert assets/logo.jpeg -resize 64x64 assets/favicon.png` and `convert assets/logo.jpeg -resize 180x180 -background white -gravity center -extent 180x180 assets/apple-touch-icon.png`.
+
+## Interface honesty
+
 - HUD labels and the operations reel are interface demonstrations, not live telemetry. The reel is explicitly labelled `ILLUSTRATIVE`.
 - The estimator uses demonstration rates in USD and says so in the interface. Replace them with approved tariffs before commercial use.
 

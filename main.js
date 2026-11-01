@@ -214,6 +214,7 @@
 
   function initGallery(onOpen) {
     const grid = $("#gallery-grid");
+    if (!grid) return; // pages without an archive grid (services.html)
     const cards = $$(".mission-card", grid);
     const buttons = $$(".filter-tab");
     const status = $("#gallery-status");
@@ -497,7 +498,12 @@
     calculate();
   }
 
-  /* ---------- Dispatch form validation & email handoff ---------- */
+  /* ---------- Dispatch form validation & WhatsApp handoff ---------- */
+
+  // Vonlet's published dispatch line, in international format without "+".
+  // wa.me needs the country code and digits only.
+  const WHATSAPP_NUMBER = "263772856852";
+  const WHATSAPP_TEXT_LIMIT = 1500;
   function showDispatchForm() {
     const form = $("#dispatch-form");
     const ready = $("#request-ready");
@@ -511,6 +517,7 @@
     const status = $("#form-status");
     const message = $("#contact-message");
     const messageCount = $("#message-count");
+    const sendWhatsApp = $("#send-whatsapp");
     const sendEmail = $("#send-email");
     const copyRequest = $("#copy-request");
     const editRequest = $("#edit-request");
@@ -599,6 +606,17 @@
       return { serviceLabel, text: lines.join("\n") };
     }
 
+    // wa.me carries the message in the query string, so keep it well inside
+    // practical URL limits; very long briefs are trimmed with a pointer back
+    // to the copy button, which always carries the full text.
+    function whatsappHref(text) {
+      let body = text;
+      if (body.length > WHATSAPP_TEXT_LIMIT) {
+        body = `${body.slice(0, WHATSAPP_TEXT_LIMIT).trimEnd()}\n\n[...brief continues — copy the full request from the Vonlet site]`;
+      }
+      return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(body)}`;
+    }
+
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       if ($("#contact-website").value) return; // Honeypot: ignore automated submissions.
@@ -611,12 +629,26 @@
       const request = buildRequest();
       requestText = request.text;
       const subject = `Security request — ${request.serviceLabel}`;
-      sendEmail.href = `mailto:info@vonletsecurity.co.zw?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(requestText)}`;
+      const href = whatsappHref(requestText);
+      if (sendWhatsApp) sendWhatsApp.href = href;
+      if (sendEmail) {
+        sendEmail.href = `mailto:info@vonletsecurity.co.zw?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(requestText)}`;
+      }
       form.hidden = true;
       ready.hidden = false;
-      status.textContent = "Request prepared. Nothing has been sent yet.";
+      status.textContent = "Request prepared. Opening WhatsApp with the details filled in.";
       ready.focus({ preventScroll: true });
       ready.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
+      // Called directly inside the submit gesture, so the tab is not blocked.
+      // window.open() returns null when the noopener flag is requested, so the
+      // opener link is severed on the returned handle instead.
+      const opened = window.open(href, "_blank");
+      if (opened) opened.opener = null;
+      if (opened) {
+        showToast("WhatsApp opened — press send there to reach the dispatch line.");
+      } else {
+        status.textContent = "Request prepared. Use Open WhatsApp to send it — your browser blocked the new tab.";
+      }
     });
 
     copyRequest.addEventListener("click", () => copyText(requestText, "Dispatch request copied to clipboard."));
@@ -647,7 +679,7 @@
     const pages = {
       privacy: {
         title: "Privacy notice",
-        html: "<p>This showcase does not use analytics cookies or submit form data to a server. The details you enter stay in this page until you choose to open your email app or copy them.</p><p>If you send the prepared email, your email provider and Vonlet will handle the message according to their own policies. Avoid including sensitive personal information, access codes or security vulnerabilities in the operational brief.</p><p>For urgent assistance, call the published hotline instead of using the form.</p>"
+        html: "<p>This site does not use analytics cookies and does not submit form data to a server. The details you enter stay in the page until you choose to open WhatsApp or copy them.</p><p>Preparing a request hands the text to WhatsApp on your own device: nothing leaves the browser until you press send there, and from that point the message is handled under WhatsApp terms and Vonlet&rsquo;s own policies. Avoid putting access codes, passwords or security vulnerabilities in the operational brief.</p><p>For urgent assistance, call the published hotline instead of using the form.</p>"
       },
       licensing: {
         title: "Licensing & compliance",
@@ -717,8 +749,20 @@
     window.setTimeout(() => navigateToSection("dispatch", "#contact-name"), 120);
   }
 
+  // A service page links here as index.html?service=cit&label=Cash-in-transit#dispatch.
+  function applyServiceFromQuery() {
+    if (!$("#contact-service")) return;
+    const params = new URLSearchParams(window.location.search);
+    const service = params.get("service");
+    if (!service) return;
+    const label = params.get("label") || "Security services";
+    selectService(service, label, `I'm interested in ${label}. Please advise on options for my site.`);
+    window.setTimeout(() => navigateToSection("dispatch", "#contact-name"), 120);
+  }
+
   function init() {
     restorePendingRequest();
+    applyServiceFromQuery();
     initNavigation();
     initTicker();
     initScrollUI();

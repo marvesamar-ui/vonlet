@@ -16,6 +16,7 @@ Then visit `http://localhost:8080`.
 
 - `index.html` — the landing page: inline SVG icon sprite, hero, twelve selected archive frames, fleet, services, cash-in-transit feature, company profile, estimator and dispatch form.
 - `archive.html` — the complete 152-photograph archive with collection filters and the shared lightbox.
+- `services.html` — all fifteen service lines in full, with jump links, per-service request buttons and a source link back to the page each one came from.
 - `styles.css` — design tokens, self-hosted fonts, grid/flex layouts, HUD styling, animations and responsive breakpoints.
 - `main.js` — modular navigation, focus-trapped dialogs, archive filters, lightbox, counters, live estimator, form validation and email handoff.
 - `assets/images/thumbs/` — 640px WebP derivatives used in the archive grid (152 files).
@@ -26,6 +27,7 @@ Then visit `http://localhost:8080`.
 - `assets/fonts/` — locally hosted Barlow files with their licences.
 - `tools/process-images.sh` — regenerates both WebP sizes from the original JPG archive.
 - `tools/build_gallery.py` — the photo catalogue (collection, title, alt text per image) and the generator that writes the featured grid into `index.html` and the full grid into `archive.html`.
+- `tools/build_services.py` — the service catalogue (slug, group, copy, points, image, dispatch mapping, source URL) and the generator that writes `services.html`.
 
 ## Photo archive
 
@@ -40,6 +42,8 @@ Then visit `http://localhost:8080`.
 ## Content & provenance
 
 - Company facts, mission, vision, core values, services, recruitment steps, hotline, email and head-office address were taken from the live site **https://vonletsecurity.co.zw/** and its pages (`/about-us/`, `/services/`, the individual `/service/...` pages and the home page).
+- All fifteen service lines are described in full on `services.html`, sourced from the fourteen `/service/...` pages plus the cash-in-transit block on the home page. Each block keeps a **Source page** link so the copy can be checked against the original. Nothing about a service line lives only on the external site now.
+- Two source texts were corrected rather than copied blindly: the guard-training page lists "First Drill" where it means fire drill, and the firearm-handling page is written for a US licensing regime ("vary from state to state"), which is stated here as requirements differing between jurisdictions.
 - The four figures in "Built on record" are published company facts: founded 2010, 24/7/365 technical support, two countries, and fifteen service lines (fourteen published services plus cash-in-transit).
 - The 152 archive photographs are authentic company material.
 - The four cash-in-transit images in `assets/images/cit/` are the one exception: they are AI-generated concept illustrations showing a convoy formation with escort, the vans on route, a loading bay and a counter handover. They were generated from `assets/logo-mark.png` plus the faces and uniforms in the archive, after the client asked for cash-in-transit imagery. They sit in their own `#cash-in-transit` band and every one is labelled `ILLUSTRATIVE — AI-GENERATED CONCEPT IMAGERY, NOT COMPANY PHOTOGRAPHS`. Never move them into the archive grid or present them as company photographs.
@@ -61,7 +65,10 @@ Then visit `http://localhost:8080`.
 
 ## Production notes
 
-- The dispatch form validates locally and prepares a `mailto:` handoff. It does **not** send or store data. Connect a server-side endpoint or form provider before expecting direct submissions; add spam protection, rate limiting and server-side validation at that point.
+- The dispatch form validates locally, then opens **WhatsApp** (`https://wa.me/263772856852`) in a new tab with the whole request — name, email, phone, service, operational brief and consent — written into the message body. Nothing is sent by the site itself and nothing is stored; the visitor presses send in WhatsApp.
+- The WhatsApp number lives in one place: `WHATSAPP_NUMBER` at the top of `initContact()` in `main.js`. Change it there and every handoff follows. Long briefs are trimmed to `WHATSAPP_TEXT_LIMIT` (1500 characters) inside the URL so the message survives practical URL limits; the **Copy request** button always carries the full, untrimmed text.
+- If a browser blocks the new tab, the ready panel keeps an **Open WhatsApp** button with the same prefilled link, plus an email fallback to `info@vonletsecurity.co.zw`.
+- To collect submissions server-side later, add an endpoint alongside the WhatsApp handoff; add spam protection, rate limiting and server-side validation at that point.
 - Licensing numbers were not published on the reference site, so the compliance dialog directs procurement teams to verify current documents with Vonlet instead of inventing credentials.
 - Set the deployment domain in `canonical` and `og:url`, and make `og:image` an absolute URL, when the site goes live.
 - Fonts are self-hosted under the SIL Open Font License; license files are included in `assets/fonts/`.
@@ -72,6 +79,12 @@ Then visit `http://localhost:8080`.
 2. Run `bash tools/process-images.sh /path/to/folder` to create both WebP sizes.
 3. Add each new frame to `PHOTOS` in `tools/build_gallery.py` (image name, collection, title, alt text).
 4. Run `python3 tools/build_gallery.py`. The script verifies that every thumbnail is catalogued and every catalogue entry has a file, then regenerates the featured grid in `index.html` and the filter tabs plus full grid in `archive.html`.
+
+## Updating a service line
+
+1. Edit the matching entry in `SERVICES` in `tools/build_services.py` (name, group, summary, paragraphs, points, image, source URL, dispatch value).
+2. Run `python3 tools/build_services.py`. It rebuilds `services.html` from the `index.html` shell, so the header, footer and dialogs stay identical across pages.
+3. Request buttons carry `index.html?service=<value>&label=<name>#dispatch`; `main.js` reads that query, preselects the dispatch form and focuses it.
 
 ## Accessibility & behavior
 

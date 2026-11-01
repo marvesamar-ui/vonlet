@@ -874,12 +874,12 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
 
 /* ---------- Cash-in-transit concept band ---------- */
 .cit-section { background: var(--navy-900); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.cit-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.cit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .cit-card { display: flex; flex-direction: column; margin: 0; border: 1px solid var(--line); background: var(--navy-850); }
 .cit-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-bottom: 1px solid var(--line); }
 .cit-card figcaption { display: flex; flex-direction: column; gap: 8px; padding: 20px 20px 24px; }
 .cit-card figcaption span { font-family: var(--font-mono); font-size: 8px; letter-spacing: .13em; color: var(--yellow); }
-.cit-card figcaption strong { font-family: var(--font-display); font-size: 24px; font-weight: 600; line-height: 1.12; text-transform: uppercase; }
+.cit-card figcaption strong { font-family: var(--font-display); font-size: 28px; font-weight: 600; line-height: 1.12; text-transform: uppercase; }
 .cit-card figcaption p { color: var(--slate-400); font-size: 13px; line-height: 1.6; }
 .cit-footer { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
 .cit-note { display: flex; align-items: flex-start; gap: 8px; max-width: 62ch; color: var(--slate-500); font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; line-height: 1.7; }

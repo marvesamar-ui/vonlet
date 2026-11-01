@@ -169,7 +169,6 @@ main section:focus { outline: none; }
 .utility-divider { color: var(--line-strong); }
 .nav-shell { display: flex; align-items: center; gap: 32px; min-height: 82px; }
 .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; flex-shrink: 0; }
-.brand-crest { width: 42px; height: 50px; color: var(--yellow); }
 .brand-type { display: flex; flex-direction: column; line-height: 1; }
 .brand-type strong { font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: .075em; }
 .brand-type > span { margin-top: 5px; font-size: 8px; font-weight: 600; letter-spacing: .31em; color: var(--slate-400); }
@@ -577,7 +576,6 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
   .utility-inner { min-height: 28px; font-size: 8px; }
   .utility-inner > span:last-child { display: none; }
   .nav-shell { min-height: 68px; gap: 12px; }
-  .brand-crest { width: 34px; height: 42px; }
   .brand-type strong { font-size: 25px; }
   .brand-type > span { font-size: 7px; letter-spacing: .27em; }
   .hotline-button { justify-content: center; width: 42px; height: 42px; padding: 0; }

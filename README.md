@@ -65,7 +65,10 @@ Then visit `http://localhost:8080`.
 
 ## Production notes
 
-- The dispatch form validates locally and prepares a `mailto:` handoff. It does **not** send or store data. Connect a server-side endpoint or form provider before expecting direct submissions; add spam protection, rate limiting and server-side validation at that point.
+- The dispatch form validates locally, then opens **WhatsApp** (`https://wa.me/263772856852`) in a new tab with the whole request — name, email, phone, service, operational brief and consent — written into the message body. Nothing is sent by the site itself and nothing is stored; the visitor presses send in WhatsApp.
+- The WhatsApp number lives in one place: `WHATSAPP_NUMBER` at the top of `initContact()` in `main.js`. Change it there and every handoff follows. Long briefs are trimmed to `WHATSAPP_TEXT_LIMIT` (1500 characters) inside the URL so the message survives practical URL limits; the **Copy request** button always carries the full, untrimmed text.
+- If a browser blocks the new tab, the ready panel keeps an **Open WhatsApp** button with the same prefilled link, plus an email fallback to `info@vonletsecurity.co.zw`.
+- To collect submissions server-side later, add an endpoint alongside the WhatsApp handoff; add spam protection, rate limiting and server-side validation at that point.
 - Licensing numbers were not published on the reference site, so the compliance dialog directs procurement teams to verify current documents with Vonlet instead of inventing credentials.
 - Set the deployment domain in `canonical` and `og:url`, and make `og:image` an absolute URL, when the site goes live.
 - Fonts are self-hosted under the SIL Open Font License; license files are included in `assets/fonts/`.

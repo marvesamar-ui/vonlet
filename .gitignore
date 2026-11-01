@@ -3,3 +3,6 @@ image-search/
 node_modules/
 .DS_Store
 Thumbs.db
+
+# Drive source downloads (processed into assets/images)
+google_drive/

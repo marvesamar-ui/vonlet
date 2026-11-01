@@ -200,14 +200,14 @@
     const categoryNode = $(".mission-category", card);
     return {
       card,
-      group,
+      group: card.dataset.group || group,
       title: card.dataset.title || "Operation",
       brief: card.dataset.brief || "",
       equipment: (card.dataset.equipment || "").split("|").filter(Boolean),
       service: card.dataset.service || "integrated",
       kind: card.dataset.kind || "Showcase imagery",
       category: categoryNode ? categoryNode.textContent.trim() : "FLEET & TECHNOLOGY",
-      image: image ? (image.currentSrc || image.src) : "",
+      image: card.dataset.full || (image ? (image.currentSrc || image.src) : ""),
       alt: image ? image.alt : ""
     };
   }
@@ -220,6 +220,9 @@
     const count = $("#gallery-count");
     const items = cards.map((card) => readCard(card, "operations"));
     let visibleItems = items.slice();
+
+    const collectionCount = items.length;
+    const collectionTotal = new Set(items.map((item) => item.category)).size;
 
     cards.forEach((card, index) => {
       const button = $(".mission-open", card);
@@ -234,7 +237,8 @@
         if (match) {
           visibleItems.push(items[index]);
           card.classList.add("is-visible");
-          if (!prefersReducedMotion() && typeof card.animate === "function") {
+          // Only animate the first rows; a 150+ card archive would otherwise queue seconds of motion.
+          if (!prefersReducedMotion() && typeof card.animate === "function" && visibleItems.length <= 12) {
             card.getAnimations().forEach((animation) => animation.cancel());
             card.animate(
               [{ opacity: 0, transform: "translateY(12px) scale(.985)" }, { opacity: 1, transform: "translateY(0) scale(1)" }],
@@ -246,9 +250,12 @@
       grid.classList.toggle("is-filtered", filter !== "all");
       grid.classList.toggle("is-single", visibleItems.length === 1);
       const activeButton = buttons.find((button) => button.dataset.filter === filter);
-      const label = filter === "all" ? "all" : activeButton.firstChild.textContent.trim();
-      status.textContent = `Showing ${visibleItems.length} ${label} operation${visibleItems.length === 1 ? "" : "s"}.`;
-      count.textContent = `${pad(visibleItems.length)} VIEW${visibleItems.length === 1 ? "" : "S"} / ${pad(filter === "all" ? 4 : 1)} SPECIALISM${filter === "all" ? "S" : ""}`;
+      const label = filter === "all" ? "archive" : activeButton.firstChild.textContent.trim();
+      status.textContent = filter === "all"
+        ? `Showing all ${visibleItems.length} photographs from the company archive.`
+        : `Showing ${visibleItems.length} photograph${visibleItems.length === 1 ? "" : "s"} from the ${label} collection.`;
+      const collections = filter === "all" ? collectionTotal : 1;
+      count.textContent = `${visibleItems.length} PHOTOGRAPH${visibleItems.length === 1 ? "" : "S"} / ${pad(collections)} COLLECTION${collections === 1 ? "" : "S"}`;
     }
 
     buttons.forEach((button) => {
@@ -289,13 +296,20 @@
       category.textContent = item.category;
       title.textContent = item.title;
       brief.textContent = item.brief;
-      source.textContent = `${item.kind}. Equipment and deployment are confirmed during assessment.`;
+      source.textContent = item.group === "archive"
+        ? `${item.kind}. The caption describes what is visible in the frame.`
+        : `${item.kind}. Equipment and deployment are confirmed during assessment.`;
       equipment.replaceChildren(...item.equipment.map((label) => {
         const li = document.createElement("li");
         li.textContent = label;
         return li;
       }));
-      counter.textContent = `${pad(index + 1)} / ${pad(items.length)}`;
+      counter.textContent = `${index + 1} / ${items.length}`;
+      [items[(index + 1) % items.length], items[(index - 1 + items.length) % items.length]].forEach((neighbour) => {
+        if (!neighbour || neighbour === item) return;
+        const preload = new Image();
+        preload.src = neighbour.image;
+      });
       const multiple = items.length > 1;
       prev.disabled = !multiple;
       next.disabled = !multiple;
@@ -384,6 +398,7 @@
       }
       if (type === "decimal") return `${value.toFixed(1)}${suffix}`;
       if (type === "dispatch") return `${Math.round(value)}/7`;
+      if (type === "text") return node.dataset.target || "";
       return `${Math.round(value).toLocaleString("en-US")}${suffix}`;
     };
     const run = () => {
@@ -428,7 +443,7 @@
     // Demonstration rates only. Replace with approved tariffs before commercial use.
     const rates = { residential: 420, commercial: 520, industrial: 640, construction: 580, event: 680 };
     const shifts = { day: 1, night: 1.15, full: 1.85 };
-    const addonRates = { cctv: 180, k9: 320, sensors: 120 };
+    const addonRates = { cctv: 180, k9: 320, monitoring: 120 };
     let current = null;
 
     function calculate() {
@@ -444,7 +459,7 @@
       const total = personnel + addons;
       const propertyLabel = property.options[property.selectedIndex].textContent;
       const hoursLabel = hours.options[hours.selectedIndex].textContent;
-      const addonLabels = selectedAddons.map((key) => ({ cctv: "CCTV monitoring", k9: "K-9 patrol support", sensors: "AI perimeter sensors" }[key]));
+      const addonLabels = selectedAddons.map((key) => ({ cctv: "CCTV monitoring", k9: "K-9 patrol support", monitoring: "Guard monitoring" }[key]));
 
       current = { count, propertyLabel, hoursLabel, addonLabels, personnel, addons, total };
       config.textContent = `${propertyLabel} · ${hoursLabel} · ${count} guard${count === 1 ? "" : "s"}`;
@@ -636,7 +651,7 @@
       },
       licensing: {
         title: "Licensing & compliance",
-        html: "<p>Vonlet Security Services operates in Zimbabwe and Zambia. Current company registration, security operating licences, tax clearance and insurance documents should be verified directly with Vonlet during procurement.</p><p>This showcase does not publish a licence number. Request the current compliance pack before contracting:</p><ul><li>Email: info@vonletsecurity.co.zw</li><li>Hotline: +263 772 856 852</li><li>Head office: 9 Blatherwick Road, Queensdale, Harare</li></ul><p>Drone, armed and specialist deployments remain subject to applicable permissions and site-specific approval.</p>"
+        html: "<p>Vonlet Security Services operates in Zimbabwe and Zambia. Current company registration, security operating licences, tax clearance and insurance documents should be verified directly with Vonlet during procurement.</p><p>This showcase does not publish a licence number. Request the current compliance pack before contracting:</p><ul><li>Email: info@vonletsecurity.co.zw</li><li>Hotline: +263 772 856 852</li><li>Head office: 9 Blatherwick Road, Queensdale, Harare</li></ul><p>Armed guarding, cash-in-transit, K-9 deployment and electronic security work remain subject to applicable firearm, transport and site-specific approvals.</p>"
       }
     };
     $$("[data-info-dialog]").forEach((button) => {

@@ -169,7 +169,6 @@ main section:focus { outline: none; }
 .utility-divider { color: var(--line-strong); }
 .nav-shell { display: flex; align-items: center; gap: 32px; min-height: 82px; }
 .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; flex-shrink: 0; }
-.brand-crest { width: 42px; height: 50px; color: var(--yellow); }
 .brand-type { display: flex; flex-direction: column; line-height: 1; }
 .brand-type strong { font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: .075em; }
 .brand-type > span { margin-top: 5px; font-size: 8px; font-weight: 600; letter-spacing: .31em; color: var(--slate-400); }
@@ -577,7 +576,6 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
   .utility-inner { min-height: 28px; font-size: 8px; }
   .utility-inner > span:last-child { display: none; }
   .nav-shell { min-height: 68px; gap: 12px; }
-  .brand-crest { width: 34px; height: 42px; }
   .brand-type strong { font-size: 25px; }
   .brand-type > span { font-size: 7px; letter-spacing: .27em; }
   .hotline-button { justify-content: center; width: 42px; height: 42px; padding: 0; }
@@ -852,4 +850,74 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
     line-height: 1.15;
   }
   .gallery-grid--archive .mission-info { right: 36px; bottom: 10px; }
+}
+
+/* ---------- Landing: selected frames + archive CTA ---------- */
+.gallery-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.gallery-actions p {
+  max-width: 62ch;
+  color: var(--slate-500);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .1em;
+  line-height: 1.9;
+  text-align: right;
+}
+
+/* ---------- Cash-in-transit concept band ---------- */
+.cit-section { background: var(--navy-900); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.cit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.cit-card { display: flex; flex-direction: column; margin: 0; border: 1px solid var(--line); background: var(--navy-850); }
+.cit-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-bottom: 1px solid var(--line); }
+.cit-card figcaption { display: flex; flex-direction: column; gap: 8px; padding: 20px 20px 24px; }
+.cit-card figcaption span { font-family: var(--font-mono); font-size: 8px; letter-spacing: .13em; color: var(--yellow); }
+.cit-card figcaption strong { font-family: var(--font-display); font-size: 28px; font-weight: 600; line-height: 1.12; text-transform: uppercase; }
+.cit-card figcaption p { color: var(--slate-400); font-size: 13px; line-height: 1.6; }
+.cit-footer { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.cit-note { display: flex; align-items: flex-start; gap: 8px; max-width: 62ch; color: var(--slate-500); font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; line-height: 1.7; }
+.cit-note .icon { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
+
+/* ---------- Archive page masthead ---------- */
+.page-hero { position: relative; padding: 84px 0 56px; border-bottom: 1px solid var(--line); background: radial-gradient(120% 90% at 12% 0%, rgba(230, 25, 25, .16), transparent 60%), var(--navy-950); }
+.page-hero .eyebrow { color: var(--slate-300); }
+.page-hero h1 { margin: 18px 0 0; font-family: var(--font-display); font-size: clamp(48px, 6.4vw, 92px); font-weight: 700; line-height: .94; text-transform: uppercase; }
+.page-hero h1 span { color: var(--yellow); }
+.page-hero-lead { max-width: 62ch; margin-top: 22px; color: var(--slate-300); font-size: 15px; line-height: 1.75; }
+.page-hero-stats { display: flex; flex-wrap: wrap; gap: 44px; margin: 32px 0 0; padding: 0; list-style: none; }
+.page-hero-stats li { display: flex; flex-direction: column; gap: 4px; }
+.page-hero-stats strong { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1; }
+.page-hero-stats span { font-family: var(--font-mono); font-size: 8px; letter-spacing: .14em; color: var(--slate-500); }
+.page-hero-actions { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
+
+@media (max-width: 1024px) {
+  .cit-grid { grid-template-columns: 1fr; }
+  .gallery-actions { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .gallery-actions p { text-align: left; }
+  .cit-footer { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .page-hero { padding: 64px 0 44px; }
+}
+
+/* ---------- Company logo ---------- */
+.brand-logo {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 4px;
+  background: #fff;
+  object-fit: contain;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, .28);
+}
+.footer-brand .brand-logo { width: 46px; height: 46px; }
+@media (max-width: 600px) {
+  .brand-logo { width: 36px; height: 36px; }
+  .footer-brand .brand-logo { width: 38px; height: 38px; }
 }

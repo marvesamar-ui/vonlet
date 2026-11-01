@@ -704,7 +704,21 @@
   }
 
   /* ---------- Boot ---------- */
+  function restorePendingRequest() {
+    let pending = null;
+    try {
+      pending = JSON.parse(sessionStorage.getItem("vonlet:request") || "null");
+      if (pending) sessionStorage.removeItem("vonlet:request");
+    } catch (error) {
+      return;
+    }
+    if (!pending || !$("#contact-service")) return;
+    selectService(pending.service || "integrated", pending.title || "Security services", pending.message || "");
+    window.setTimeout(() => navigateToSection("dispatch", "#contact-name"), 120);
+  }
+
   function init() {
+    restorePendingRequest();
     initNavigation();
     initTicker();
     initScrollUI();
@@ -716,8 +730,19 @@
     initServiceLinks();
 
     const lightbox = createLightbox((item) => {
-      selectService(item.service, item.title, `I'm interested in ${item.title}. Please advise on options for my site.`);
-      navigateToSection("dispatch", "#contact-name");
+      const message = `I'm interested in ${item.title}. Please advise on options for my site.`;
+      if ($("#contact-service")) {
+        selectService(item.service, item.title, message);
+        navigateToSection("dispatch", "#contact-name");
+        return;
+      }
+      // The archive page has no dispatch form: carry the choice across to the site.
+      try {
+        sessionStorage.setItem("vonlet:request", JSON.stringify({ service: item.service, title: item.title, message }));
+      } catch (error) {
+        /* storage can be blocked; the fallback still lands on the contact form */
+      }
+      window.location.href = "index.html#dispatch";
     });
     initGallery(lightbox.open);
     initHardware(lightbox);

@@ -352,7 +352,7 @@ SERVICES = [
             "Accounting for all books",
             "Branded vehicles and trained crews",
         ],
-        image="assets/images/cit/cit-convoy-escort.jpg",
+        image="assets/images/cit/v2-convoy.jpg",
         alt="Illustration: two branded armoured vans flanking an escort pickup",
         note=CONCEPT_NOTE,
         source=f"{SITE}/#home",

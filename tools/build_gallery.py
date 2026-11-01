@@ -3,7 +3,8 @@
 
 Every photograph in the Google Drive folder "security" was reviewed and
 catalogued. This script renders the static gallery markup (so the archive also
-works without JavaScript) and injects it between the markers in index.html.
+works without JavaScript) twice: a curated dozen between the GALLERY markers in
+index.html, and the complete set between the ARCHIVE markers in archive.html.
 
 Usage:  python3 tools/build_gallery.py
 """
@@ -17,6 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 INDEX = ROOT / "index.html"
+ARCHIVE = ROOT / "archive.html"
 THUMBS = ROOT / "assets/images/thumbs"
 FULL = ROOT / "assets/images/full"
 
@@ -24,6 +26,12 @@ FULL = ROOT / "assets/images/full"
 # Collections: label, filter key, short brief shown in the lightbox, kit tags.
 # --------------------------------------------------------------------------
 COLLECTIONS = {
+    "leadership": {
+        "label": "Leadership",
+        "brief": "Vonlet's chief executive officer at head office in Queensdale, Harare. The company is indigenous owned and, since 2010, has grown into a provider operating across Zimbabwe and part of Zambia.",
+        "kit": "Executive office|Client liaison|Company strategy|24/7/365 oversight",
+        "service": "integrated",
+    },
     "operations": {
         "label": "Operations room",
         "brief": "Vonlet's operations desk coordinates duty rosters, site reports and client communication. Supervisors brief officers, review reports and keep the field teams informed from this control point at head office.",
@@ -165,14 +173,14 @@ PHOTOS = [
     ("IMG_9342", "office", "Visitor check-in", "Vonlet receptionist standing at the counter with seated colleagues"),
     ("IMG_9343", "office", "Client handover at reception", "Vonlet receptionist handing documents across the counter"),
     ("IMG_9344", "office", "Reception duty", "Vonlet reception staff serving at the front desk"),
-    ("IMG_9346", "office", "Client liaison officer", "Vonlet staff member in a pink shirt at a laptop"),
-    ("IMG_9347", "office", "Management portrait", "Senior Vonlet manager at her desk with a laptop"),
-    ("IMG_9348", "office", "Head office management", "Vonlet manager seated at her desk with hands clasped"),
-    ("IMG_9349", "office", "Management at work", "Vonlet manager working at a laptop in her office"),
-    ("IMG_9350", "office", "Executive desk", "Vonlet manager seated at a desk with a laptop and notebooks"),
-    ("IMG_9351", "office", "Office portrait", "Vonlet manager at her desk in a pink shirt"),
-    ("IMG_9352", "office", "Management workstation", "Vonlet manager reviewing work at her laptop"),
-    ("IMG_9353", "office", "Desk review", "Vonlet manager seated at her desk with a laptop"),
+    ("IMG_9346", "leadership", "Chief executive at her desk", "Vonlet chief executive in a pink blouse working at a laptop"),
+    ("IMG_9347", "leadership", "Chief executive portrait", "Chief executive in a pink blouse, hand to her chin, at her desk"),
+    ("IMG_9348", "leadership", "Executive office portrait", "Chief executive seated at her office desk with hands clasped"),
+    ("IMG_9349", "leadership", "Leadership at work", "Chief executive working at a laptop in her head office"),
+    ("IMG_9350", "leadership", "Board papers review", "Chief executive at her desk with a laptop, diary and notebooks"),
+    ("IMG_9351", "leadership", "Chief executive briefing", "Chief executive in a pink blouse seated behind her desk"),
+    ("IMG_9352", "leadership", "Strategy session", "Chief executive reviewing work at her laptop"),
+    ("IMG_9353", "leadership", "Head office leadership", "Chief executive seated at her desk with a laptop open"),
     ("IMG_9354", "office", "IT desk portrait", "Vonlet staff member working at a desktop computer"),
     ("IMG_9355", "office", "Systems desk", "Vonlet officer at a Lenovo workstation in the head office"),
     ("IMG_9356", "office", "Workstation review", "Vonlet staff member seated at a desktop computer"),
@@ -251,6 +259,7 @@ PHOTOS = [
 # Lead each collection with its strongest frame, then interleave collections so
 # consecutive near-identical frames are not shown side by side.
 COVER = {
+    "leadership": "IMG_9346",
     "tactical": "IMG_9309",
     "operations": "IMG_9250",
     "people": "IMG_9363",
@@ -261,7 +270,23 @@ COVER = {
     "fleet": "IMG_9337",
     "training": "IMG_9270",
 }
-ORDER = ["tactical", "operations", "people", "field", "tech", "k9", "office", "fleet", "training"]
+ORDER = ["leadership", "tactical", "operations", "people", "field", "tech", "k9", "office", "fleet", "training"]
+
+# The landing page shows a dozen frames; the complete set lives on archive.html.
+FEATURED = [
+    "IMG_9346",  # leadership
+    "IMG_9299",  # tactical
+    "IMG_9250",  # operations room
+    "IMG_9329",  # field team lineup
+    "IMG_9399",  # electronic security
+    "IMG_9295",  # K-9 unit
+    "IMG_9341",  # reception & office
+    "IMG_9337",  # fleet & logistics
+    "IMG_9270",  # strategy & training
+    "IMG_9302",  # tactical response pair
+    "IMG_9409",  # ATM duty officer
+    "IMG_9390",  # people & teams
+]
 
 
 def image_size(name: str) -> tuple[int, int]:
@@ -295,37 +320,65 @@ def build_order() -> list[tuple[str, str, str, str]]:
     return ordered
 
 
-def main() -> None:
-    source = INDEX.read_text(encoding="utf-8")
+def render_card(row: tuple[str, str, str, str], indent: str = "          ") -> str:
+    name, collection, title, alt = row
+    meta = COLLECTIONS[collection]
+    width, height = image_size(name)
+    brief = meta["brief"].replace(" - ", " — ")
+    return (
+        f'{indent}<article class="mission-card" data-category="{collection}" data-group="archive"\n'
+        f'{indent}  data-title="{html.escape(title, quote=True)}"\n'
+        f'{indent}  data-service="{meta["service"]}"\n'
+        f'{indent}  data-kind="Vonlet company archive photograph"\n'
+        f'{indent}  data-full="assets/images/full/{name}.webp"\n'
+        f'{indent}  data-brief="{html.escape(brief, quote=True)}"\n'
+        f'{indent}  data-equipment="{html.escape(meta["kit"], quote=True)}">\n'
+        f'{indent}  <button class="mission-open" type="button" aria-haspopup="dialog" aria-label="Expand photograph: {html.escape(title, quote=True)}">\n'
+        f'{indent}    <img src="assets/images/thumbs/{name}.webp" alt="{html.escape(alt, quote=True)}" width="{width}" height="{height}" loading="lazy" decoding="async">\n'
+        f'{indent}    <span class="card-scrim" aria-hidden="true"></span>\n'
+        f'{indent}    <span class="mission-info"><span class="mission-category">{html.escape(meta["label"].upper())}</span><span class="mission-title">{html.escape(title)}</span></span>\n'
+        f'{indent}    <span class="card-expand" aria-hidden="true"><svg class="icon"><use href="#i-up-right"/></svg></span>\n'
+        f'{indent}  </button>\n'
+        f'{indent}</article>'
+    )
 
+
+def main() -> None:
     photos = build_order()
-    if {row[0] for row in PHOTOS} != {p.stem for p in THUMBS.glob("*.webp")}:
-        missing = {p.stem for p in THUMBS.glob("*.webp")} - {row[0] for row in PHOTOS}
-        extra = {row[0] for row in PHOTOS} - {p.stem for p in THUMBS.glob("*.webp")}
+    every = {p.stem for p in THUMBS.glob("*.webp")}
+    if {row[0] for row in PHOTOS} != every:
+        missing = every - {row[0] for row in PHOTOS}
+        extra = {row[0] for row in PHOTOS} - every
         raise SystemExit(f"Catalogue mismatch. Uncatalogued: {sorted(missing)} Missing files: {sorted(extra)}")
 
-    cards = []
-    for position, (name, collection, title, alt) in enumerate(photos, start=1):
-        meta = COLLECTIONS[collection]
-        width, height = image_size(name)
-        cards.append(
-            f'''          <article class="mission-card" data-category="{collection}" data-group="archive"
-            data-title="{html.escape(title, quote=True)}"
-            data-service="{meta["service"]}"
-            data-kind="Vonlet company archive photograph"
-            data-full="assets/images/full/{name}.webp"
-            data-brief="{html.escape(meta["brief"].replace(" - ", " — "), quote=True)}"
-            data-equipment="{html.escape(meta["kit"], quote=True)}">
-            <button class="mission-open" type="button" aria-haspopup="dialog" aria-label="Expand photograph: {html.escape(title, quote=True)}">
-              <img src="assets/images/thumbs/{name}.webp" alt="{html.escape(alt, quote=True)}" width="{width}" height="{height}" loading="lazy" decoding="async">
-              <span class="card-scrim" aria-hidden="true"></span>
-              <span class="mission-info"><span class="mission-category">{html.escape(meta["label"].upper())}</span><span class="mission-title">{html.escape(title)}</span></span>
-              <span class="card-expand" aria-hidden="true"><svg class="icon"><use href="#i-up-right"/></svg></span>
-            </button>
-          </article>'''
-        )
-
+    by_name = {row[0]: row for row in photos}
     counts = {key: sum(1 for row in PHOTOS if row[1] == key) for key in COLLECTIONS}
+
+    # Landing page: a curated dozen, not the whole archive.
+    unknown = [name for name in FEATURED if name not in by_name]
+    if unknown:
+        raise SystemExit(f"Featured names are not in the catalogue: {unknown}")
+    featured_cards = "\n".join(render_card(by_name[name]) for name in FEATURED)
+    featured_html = (
+        '        <p class="sr-only" id="gallery-status" role="status" aria-live="polite">'
+        f"Showing {len(FEATURED)} selected photographs from the {len(PHOTOS)}-frame company archive.</p>\n"
+        '        <div class="gallery-grid gallery-grid--archive gallery-grid--featured" id="gallery-grid">\n'
+        + featured_cards
+        + "\n        </div>"
+    )
+    index_source = INDEX.read_text(encoding="utf-8")
+    index_source, replaced = re.subn(
+        r"(<!-- GALLERY:START -->).*?(<!-- GALLERY:END -->)",
+        lambda match: f"{match.group(1)}\n{featured_html}\n        {match.group(2)}",
+        index_source,
+        flags=re.S,
+    )
+    if not replaced:
+        raise SystemExit("GALLERY markers not found in index.html")
+    INDEX.write_text(index_source, encoding="utf-8")
+
+    # Archive page: the complete set with collection filters.
+    cards = "\n".join(render_card(row) for row in photos)
     tabs = [
         f'<button class="filter-tab is-active" type="button" data-filter="all" aria-pressed="true">All photographs <span>{len(PHOTOS)}</span></button>'
     ]
@@ -333,8 +386,7 @@ def main() -> None:
         tabs.append(
             f'<button class="filter-tab" type="button" data-filter="{key}" aria-pressed="false">{html.escape(COLLECTIONS[key]["label"])} <span>{counts[key]}</span></button>'
         )
-
-    gallery_html = (
+    archive_html = (
         '        <div class="gallery-toolbar reveal">\n'
         '          <div class="filter-tabs" role="group" aria-label="Filter the archive by collection">\n'
         "            " + "\n            ".join(tabs) + "\n"
@@ -344,18 +396,22 @@ def main() -> None:
         '        <p class="sr-only" id="gallery-status" role="status" aria-live="polite">Showing all '
         f"{len(PHOTOS)} photographs from the Vonlet company archive.</p>\n\n"
         '        <div class="gallery-grid gallery-grid--archive" id="gallery-grid">\n'
-        + "\n".join(cards)
+        + cards
         + "\n        </div>"
     )
+    if ARCHIVE.exists():
+        archive_source = ARCHIVE.read_text(encoding="utf-8")
+        archive_source, replaced = re.subn(
+            r"(<!-- ARCHIVE:START -->).*?(<!-- ARCHIVE:END -->)",
+            lambda match: f"{match.group(1)}\n{archive_html}\n        {match.group(2)}",
+            archive_source,
+            flags=re.S,
+        )
+        if not replaced:
+            raise SystemExit("ARCHIVE markers not found in archive.html")
+        ARCHIVE.write_text(archive_source, encoding="utf-8")
 
-    source = re.sub(
-        r"(<!-- GALLERY:START -->).*?(<!-- GALLERY:END -->)",
-        lambda match: f"{match.group(1)}\n{gallery_html}\n        {match.group(2)}",
-        source,
-        flags=re.S,
-    )
-    INDEX.write_text(source, encoding="utf-8")
-    print(f"Rendered {len(PHOTOS)} photographs across {len(COLLECTIONS)} collections.")
+    print(f"Rendered {len(FEATURED)} featured frames on index.html and {len(PHOTOS)} across {len(COLLECTIONS)} collections on archive.html.")
     for key in ORDER:
         print(f"  {COLLECTIONS[key]['label']:<24} {counts[key]:>3}")
 

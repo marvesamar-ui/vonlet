@@ -214,6 +214,7 @@
 
   function initGallery(onOpen) {
     const grid = $("#gallery-grid");
+    if (!grid) return; // pages without an archive grid (services.html)
     const cards = $$(".mission-card", grid);
     const buttons = $$(".filter-tab");
     const status = $("#gallery-status");
@@ -717,8 +718,20 @@
     window.setTimeout(() => navigateToSection("dispatch", "#contact-name"), 120);
   }
 
+  // A service page links here as index.html?service=cit&label=Cash-in-transit#dispatch.
+  function applyServiceFromQuery() {
+    if (!$("#contact-service")) return;
+    const params = new URLSearchParams(window.location.search);
+    const service = params.get("service");
+    if (!service) return;
+    const label = params.get("label") || "Security services";
+    selectService(service, label, `I'm interested in ${label}. Please advise on options for my site.`);
+    window.setTimeout(() => navigateToSection("dispatch", "#contact-name"), 120);
+  }
+
   function init() {
     restorePendingRequest();
+    applyServiceFromQuery();
     initNavigation();
     initTicker();
     initScrollUI();

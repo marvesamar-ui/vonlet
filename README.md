@@ -15,12 +15,12 @@ Then visit `http://localhost:8080`.
 ## Deliverables
 
 - `index.html` — the landing page: inline SVG icon sprite, hero, twelve selected archive frames, fleet, services, cash-in-transit feature, company profile, estimator and dispatch form.
-- `archive.html` — the complete 152-photograph archive with collection filters and the shared lightbox.
+- `archive.html` — the 35-photograph archive, one frame per scene, with collection filters and the shared lightbox.
 - `services.html` — all fifteen service lines in full, with jump links, per-service request buttons and a source link back to the page each one came from.
 - `styles.css` — design tokens, self-hosted fonts, grid/flex layouts, HUD styling, animations and responsive breakpoints.
 - `main.js` — modular navigation, focus-trapped dialogs, archive filters, lightbox, counters, live estimator, form validation and email handoff.
-- `assets/images/thumbs/` — 640px WebP derivatives used in the archive grid (152 files).
-- `assets/images/full/` — 1600px WebP derivatives used in the lightbox and hero (152 files).
+- `assets/images/thumbs/` — 640px WebP derivatives used in the archive grid (35 files).
+- `assets/images/full/` — 1600px WebP derivatives used in the lightbox and hero (35 files).
 - `assets/logo.jpeg` — the supplied master logo lockup (shield, wordmark and `Zimbabwe` tag).
 - `assets/logo-mark.png` — the shield badge cropped from the master, used in the header and footer; also the source for the browser icons.
 - `assets/favicon.png`, `assets/apple-touch-icon.png` — icons generated from `assets/logo.jpeg`.
@@ -33,11 +33,12 @@ Then visit `http://localhost:8080`.
 
 - The photographs come from the client's Google Drive folder **security** (152 original `IMG_####.JPG` captures). Every frame was reviewed and catalogued individually; captions and alt text describe what is visible in the photograph, not a generic template.
 - Originals are converted to two WebP sizes and committed under `assets/images/`. The source JPGs are not committed; `google_drive/` is ignored as a scratch download directory.
-- The archive is grouped into ten collections: leadership (8), tactical & equipment (20), operations room (12), people & teams (44), field duty (16), electronic security (14), K-9 units (5), reception & office (12), fleet & logistics (6) and strategy & training (15).
-- The eight frames in **leadership** show the company's chief executive officer — the woman in the pink blouse behind the desk — and are captioned by role only, not by name.
+- The archive is grouped into ten collections: leadership (2), tactical & equipment (4), operations room (4), people & teams (6), field duty (3), electronic security (4), K-9 units (2), reception & office (3), fleet & logistics (3) and strategy & training (4).
+- The two frames in **leadership** show the company's chief executive officer — the woman in the pink blouse behind the desk — and are captioned by role only, not by name.
 - The landing page carries a curated dozen (`FEATURED` in `tools/build_gallery.py`); the whole set is only on `archive.html`.
 - Photographs are shown in a curated order: one cover frame per collection, then interleaved so similar frames are not adjacent. Filtering re-groups by collection.
 - Captions deliberately withhold individual officers' and clients' names. Do not add names to the archive without written consent.
+- **The archive is de-duplicated.** The 152 captures were shot as bursts: the same two-man baton stance from eight angles, one CEO desk sitting in eight frames, one reception counter five times over. Each burst was reduced to its strongest frame (widest composition, sharpest, most representative), keeping one picture per distinct person, place and action — 35 frames in total. When adding photographs, apply the same rule: if two frames differ only by a step to the left, keep one. The `dHash` pass in the notes below groups candidates, but the keep/drop decision is a visual one.
 
 ## Content & provenance
 
@@ -45,9 +46,9 @@ Then visit `http://localhost:8080`.
 - All fifteen service lines are described in full on `services.html`, sourced from the fourteen `/service/...` pages plus the cash-in-transit block on the home page. Each block keeps a **Source page** link so the copy can be checked against the original. Nothing about a service line lives only on the external site now.
 - Two source texts were corrected rather than copied blindly: the guard-training page lists "First Drill" where it means fire drill, and the firearm-handling page is written for a US licensing regime ("vary from state to state"), which is stated here as requirements differing between jurisdictions.
 - The four figures in "Built on record" are published company facts: founded 2010, 24/7/365 technical support, two countries, and fifteen service lines (fourteen published services plus cash-in-transit).
-- The 152 archive photographs are authentic company material.
-- The four cash-in-transit images in `assets/images/cit/` are the one exception: AI-generated concept illustrations showing the route, a crew check, the loading bay and the counter handover. They are generated against the real brand kit — `assets/logo-mark.png` for the shield, `IMG_9337` for the fleet livery (white panel van, yellow windscreen band, blue VONLET SECURITY door lettering) and `IMG_9329`/`IMG_9302` for the uniform (light-blue shirt, navy tactical vest, navy cap, reflective overalls for drivers) — so the vehicle, livery, clothing and dry-season light stay consistent across all four. They sit in their own `#cash-in-transit` band and every one is labelled `ILLUSTRATIVE — AI-GENERATED CONCEPT IMAGERY, NOT COMPANY PHOTOGRAPHS`. Never move them into the archive grid or present them as company photographs.
-- If these are ever regenerated, reuse the same references and keep one vehicle model, one uniform and one season across the set; the first attempt drifted into different vans, different shirts and a warped badge on each frame.
+- All 35 archived photographs are authentic company material, culled from the 152-capture set for near-duplicates; none were retouched.
+- The four cash-in-transit images in `assets/images/cit/` are the one exception: AI-generated concept illustrations showing the route, a crew check, the loading bay and the counter handover. They are generated against the real brand kit — `assets/logo-mark.png` for the shield, `IMG_9336` for the fleet livery (white panel van, yellow windscreen band, blue VONLET SECURITY door lettering) and `IMG_9302`/`IMG_9299` for the uniform (light-blue shirt, navy tactical vest, navy cap, reflective overalls for drivers) — so the vehicle, livery, clothing and dry-season light stay consistent across all four. They sit in their own `#cash-in-transit` band and every one is labelled `ILLUSTRATIVE — AI-GENERATED CONCEPT IMAGERY, NOT COMPANY PHOTOGRAPHS`. Never move them into the archive grid or present them as company photographs.
+- If these are ever regenerated, reuse the shipped `assets/images/cit/v2-*.jpg` frames as image references (plus `assets/logo-mark.png`) and keep one vehicle model, one uniform and one season across the set; the first attempt drifted into different vans, different shirts and a warped badge on each frame.
 
 ## Brand mark
 

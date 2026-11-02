@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Vonlet Security — image pipeline.
 # Source: Google Drive folder "security" (152 original JPG captures).
+# The archive is de-duplicated: only the 35 catalogued frames in
+# tools/build_gallery.py survive, so the prune step at the end removes any
+# derivative that the catalogue does not reference.
 # Produces two WebP derivatives per photo:
 #   assets/images/thumbs/<name>.webp  640px wide  — gallery grid
 #   assets/images/full/<name>.webp   1600px wide  — lightbox
@@ -26,5 +29,16 @@ for f in "$SRC"/*.JPG "$SRC"/*.jpg; do
   fi
   count=$((count + 1))
 done
-echo "processed $count source photos"
+# Drop derivatives that are not in the catalogue (build_gallery.py requires the
+# on-disk thumb set to match PHOTOS exactly).
+mapfile -t KEEP < <(sed -n 's/^    ("\(IMG_[0-9]\{4\}\)",.*/\1/p' "$ROOT/tools/build_gallery.py")
+for dir in "$THUMBS" "$FULL"; do
+  for f in "$dir"/IMG_*.webp; do
+    [ -e "$f" ] || continue
+    name="$(basename "${f%.webp}")"
+    printf '%s\n' "${KEEP[@]}" | grep -qx "$name" || rm -f "$f"
+  done
+done
+
+echo "processed $count source photos; kept ${#KEEP[@]} catalogued frames"
 du -sh "$THUMBS" "$FULL"

@@ -43,6 +43,12 @@ export MAGICK_TMPDIR=/tmp
 
 FILTER=(-auto-orient -level 4%,99%,1.18 -sigmoidal-contrast 2.2x44% -modulate 101,120 -enhance -unsharp 0x1+0.9+0.02 -colorspace sRGB -strip)
 
+# A frame that has been retouched (see assets/retouched/) is used as the master
+# instead of the WhatsApp original, and is NOT filtered again: the retouch was
+# made from the already-filtered derivative, so the correction below is baked
+# into it and re-applying it would double the contrast.
+RETOUCHED="$ROOT/assets/retouched"
+
 # slug | source filename | gravity | crop geometry ("" = no crop)
 FRAMES=(
   "wa-01-foot-patrol|WhatsApp Image 2026-11-04 at 08.06.23.jpeg||"
@@ -56,12 +62,21 @@ FRAMES=(
 
 for entry in "${FRAMES[@]}"; do
   IFS='|' read -r slug file gravity crop <<<"$entry"
-  [ -f "$SRC/$file" ] || { echo "missing source: $SRC/$file" >&2; exit 1; }
+  CHAIN=("${FILTER[@]}")
+  if [ -f "$RETOUCHED/$slug.png" ]; then
+    master="$RETOUCHED/$slug.png"
+    CHAIN=(-strip)
+    tag="retouched"
+  else
+    master="$SRC/$file"
+    tag="filtered"
+  fi
+  [ -f "$master" ] || { echo "missing source: $master" >&2; exit 1; }
   CROP=()
   [ -n "$crop" ] && CROP=(-gravity "$gravity" -crop "$crop" +repage)
-  convert "$SRC/$file" "${FILTER[@]}" "${CROP[@]}" -resize 640x640\> -quality 72 "$THUMBS/$slug.webp"
-  convert "$SRC/$file" "${FILTER[@]}" "${CROP[@]}" -resize 1600x1600\> -quality 78 "$FULL/$slug.webp"
-  printf '%-26s %s\n' "$slug" "$(identify -format '%wx%h' "$FULL/$slug.webp")"
+  convert "$master" "${CHAIN[@]}" "${CROP[@]}" -resize 640x640\> -quality 72 "$THUMBS/$slug.webp"
+  convert "$master" "${CHAIN[@]}" "${CROP[@]}" -resize 1600x1600\> -quality 78 "$FULL/$slug.webp"
+  printf '%-26s %-11s %s\n' "$slug" "($tag)" "$(identify -format '%wx%h' "$FULL/$slug.webp")"
 done
 
 echo "processed ${#FRAMES[@]} WhatsApp frames into $(ls "$THUMBS"/wa-*.webp | wc -l) thumbs + $(ls "$FULL"/wa-*.webp | wc -l) full frames"

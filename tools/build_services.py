@@ -457,6 +457,7 @@ SERVICES = [
         summary="Guards keep escape routes usable and fire equipment serviceable.",
         paragraphs=[
             "The guard on site ensures that fire extinguishers are neither expired nor damaged, clears corridors of impediments so people can evacuate quickly, and makes sure exit doors are kept clear and accessible to anyone who needs to leave.",
+            "The frame below is deliberately the equipment and nothing else: what a Vonlet officer checks on a fire round is the extinguisher in its bracket, its seal and its service tag, the pressure reading, and the path to the exit door.",
         ],
         points=[
             "Fire extinguisher checks",
@@ -464,9 +465,9 @@ SERVICES = [
             "Exit doors kept accessible",
             "Faster, safer evacuation",
         ],
-        image="assets/images/full/IMG_9261.webp",
-        alt="Vonlet staff seated around a conference table during a training session",
-        note=ARCHIVE_NOTE,
+        image="assets/images/concept/fire-drill-equipment.jpg",
+        alt="Illustration: a red dry-powder extinguisher with an intact safety seal and a blank inspection tag, standing against a corrugated steel kerb painted in faded hazard stripes",
+        note=CONCEPT_NOTE,
         source=f"{SITE}/service/fire-drill/",
         dispatch="training",
         dispatch_label="Fire drill training",
@@ -478,15 +479,16 @@ SERVICES = [
         summary="Life-saving training for the first minutes of a medical emergency.",
         paragraphs=[
             "First aid is the immediate treatment of a patient before trained medical personnel can take over. It is a core part of guard training at Vonlet rather than an optional extra, because it is the technique that keeps a casualty alive at the scene of an emergency.",
+            "The frame below shows the kit and nothing else, because the kit is the part the guard owns: the dressing, the tape, the gloves and the sling that have to be packed, in date and reachable before an ambulance can be.",
         ],
         points=[
             "Immediate casualty care",
             "Delivered inside basic guard training",
             "Taught alongside fire drill and firearm handling",
         ],
-        image="assets/images/full/IMG_9264.webp",
-        alt="Vonlet staff working around the training table with laptops open",
-        note=ARCHIVE_NOTE,
+        image="assets/images/concept/first-aid-kit.jpg",
+        alt="Illustration: an open white first aid kit on a concrete floor, with a rolled bandage, gauze pads, adhesive tape, scissors and disposable gloves, and a green cross inside the lid",
+        note=CONCEPT_NOTE,
         source=f"{SITE}/service/first-aid/",
         dispatch="training",
         dispatch_label="First aid training",
@@ -672,8 +674,8 @@ def main() -> None:
         '<a class="nav-link is-active" href="services.html" aria-current="page">Services</a>',
     )
     shell = shell.replace(
-        '<a href="index.html#services"><span>04</span> Services',
-        '<a href="services.html"><span>04</span> Services',
+        '<a href="index.html#services"><span>02</span> Services',
+        '<a href="services.html"><span>02</span> Services',
     )
     shell = shell.replace(
         '<a href="index.html#services">Services <svg',

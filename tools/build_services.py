@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Build services.html: all fifteen Vonlet service lines on the local site.
+"""Build services.html: all twenty-three Vonlet service lines on the local site.
 
-Every service below was taken from the company's live site — the services index,
-the fourteen individual /service/... pages and the cash-in-transit block on the
-home page — and rewritten into the local page's voice. The slug and the
+Fifteen of the lines were taken from the company's live site — the services
+index, the fourteen individual /service/... pages and the cash-in-transit block
+on the home page — and rewritten into the local page's voice. The slug and the
 "Source" link on each block point back at the page it came from, so the copy can
 be audited against the original at any time.
+
+The other eight (bank and ATM, warehouse, retail, farms and mines, residential,
+functions, private escorts, private investigations) were given to us directly by
+the company for this site and are not yet published on vonletsecurity.co.zw. They
+carry no source link and say so, and their photographs are the recent site frames
+the client sent over WhatsApp — see tools/process-wa-frames.sh.
 
 Usage:  python3 tools/build_services.py
 """
@@ -26,11 +32,16 @@ SITE = "https://vonletsecurity.co.zw"
 # Service lines. Field order:
 #   slug, name, group, summary, paragraphs, points, image, alt, note, source,
 #   dispatch value, dispatch label
-# `note` is shown under the photograph; only the cash-in-transit image is not a
-# company photograph.
+# `note` is shown under the photograph: only the cash-in-transit image is not a
+# company photograph, and the site frames the client sent directly are labelled
+# as such. `source` is the page the copy came from; leave it out (None) for a
+# line the company gave us for this site but has not published yet, and the
+# block says so instead of linking to a page that does not exist.
 # ---------------------------------------------------------------------------
 ARCHIVE_NOTE = "FROM THE COMPANY ARCHIVE"
 CONCEPT_NOTE = "ILLUSTRATIVE CONCEPT IMAGE — NOT A COMPANY PHOTOGRAPH"
+CLIENT_NOTE = "SUPPLIED BY THE CLIENT — SITE FRAME, NOVEMBER 2026"
+LOCAL_ONLY = "This line was given to us by the company for this site and is not yet published on vonletsecurity.co.zw."
 
 SERVICES = [
     dict(
@@ -98,6 +109,194 @@ SERVICES = [
         source=f"{SITE}/service/secret-service/",
         dispatch="secret",
         dispatch_label="Undercover guards",
+    ),
+    # --- Sector security: given to us by the company, not yet on the live site.
+    dict(
+        slug="bank-and-atm-security",
+        name="Bank & ATM security",
+        group="Sector security",
+        summary="Guarding at branches, cash offices and standalone ATM points — presence where the queue forms, cover where the machine stands.",
+        paragraphs=[
+            "Officers are posted at banking premises and at standalone ATM points, where the risk sits in the few minutes a customer spends withdrawing cash. A visible uniform beside the machine discourages the observation of PIN entry, snatch-and-run theft, and the tampering and skimming that target an unattended terminal.",
+            "After hours the same post keeps the machine and its surroundings under watch. Attempted break-ins, loitering vehicles, blocked sight-lines and damaged casing are reported to the control room while there is still time to act, and every visit is written into the occurrence book so the client has a record of cover, not a promise of it.",
+        ],
+        points=[
+            "Static posts at entrances, queues and cash desks",
+            "Day and after-hours cover at ATM points",
+            "Deterrence of snatching, skimming and tampering",
+            "Queue and door management at peak hours",
+            "Logged visits and incident reporting to the control room",
+        ],
+        image="assets/images/full/wa-02-gatehouse-register.webp",
+        alt="Two Vonlet officers at a guard desk with occurrence books and a two-way radio",
+        note=CLIENT_NOTE,
+        source=None,
+        dispatch="bank-atm",
+        dispatch_label="Bank & ATM security",
+    ),
+    dict(
+        slug="warehouse-security",
+        name="Warehouse & logistics security",
+        group="Sector security",
+        summary="Gate, yard and stock protection for warehouses, depots and distribution points, where the loss is usually in the goods.",
+        paragraphs=[
+            "A warehouse is guarded at three points: the gate, the yard and the stock itself. Officers register vehicles and visitors, check outbound loads against the paperwork that should accompany them, and keep the fence line walked, so a load cannot leave the premises without a document to match it.",
+            "Because most loss in distribution is internal, posts are paired with discreet checks — seal numbers, weighbridge tickets, night-shift movement and the loading bays that sit outside a supervisor's eye. Mobile patrols on Vonlet's vehicles, quad bikes included, cover the perimeter ground a fixed post cannot see from its chair.",
+        ],
+        points=[
+            "Gate and boom control with a vehicle register",
+            "Load, waybill and seal verification",
+            "Roving patrols of yard, racks and fence line",
+            "Night-shift and after-hours stock cover",
+            "Mobile quad-bike and vehicle patrol",
+        ],
+        image="assets/images/full/wa-03-quad-driveway.webp",
+        alt="Vonlet officer riding a quad bike up a concrete driveway past a gated entrance",
+        note=CLIENT_NOTE,
+        source=None,
+        dispatch="warehouse",
+        dispatch_label="Warehouse & logistics security",
+    ),
+    dict(
+        slug="retail-security",
+        name="Retail security",
+        group="Sector security",
+        summary="Store-floor, forecourt and cash-office guarding that cuts shrinkage without turning the entrance into a checkpoint.",
+        paragraphs=[
+            "Store detection works best when customers stop noticing it. A uniformed officer holds the entrance, the trolley bay and the queue lines, while discreet cover on the floor — the undercover guards described above work this sector in particular — watches fitting rooms, high-value shelves and the points where security tags are defeated.",
+            "The other half of the job sits outside trading hours: deliveries in the early morning, the cash office before a banking run, alarm response once the shutters are down, and the parking area after dark, when the store is closed but the stock inside is not.",
+        ],
+        points=[
+            "Uniformed presence at the door and on the floor",
+            "Discreet cover for fitting rooms and high-value stock",
+            "Tag, till and cash-office watch",
+            "Delivery and collection hours covered",
+            "After-hours perimeter, parking and alarm response",
+        ],
+        image="assets/images/full/wa-05-site-desk-pair.webp",
+        alt="Two Vonlet officers at a desk outside a site building, one seated with a rifle across his knees",
+        note=CLIENT_NOTE,
+        source=None,
+        dispatch="retail",
+        dispatch_label="Retail security",
+    ),
+    dict(
+        slug="farms-and-mines-security",
+        name="Farms & mines security",
+        group="Sector security",
+        summary="Boundary, access and materials control over ground too large to walk — farms, ranches, mines, and sand and aggregate operations.",
+        paragraphs=[
+            "On a farm or a mine the perimeter is the problem: kilometres of fence, gates that are meant to be open, and value that is in the ground, in a dam, on a weighbridge or in a truck. Vonlet works the boundary on foot and by vehicle, posts officers at the gate that matters and roves the rest rather than leaving it to chance.",
+            "Higher-risk ground — ore, fuel, explosives stores, and sand and aggregate operations where the material itself can be carried off in a wheelbarrow — is covered by armed officers trained in-house with the Zimbabwe Republic Police and the Zambia National Police. Patrol routes and check-times are set by the site risk assessment, not by a fixed timetable an intruder can learn.",
+        ],
+        points=[
+            "Perimeter patrols on foot and by vehicle",
+            "Gate control and a stock movement register",
+            "Armed cover for ore, fuel, explosives and aggregate",
+            "Weighbridge and load-out checks",
+            "K-9 support for veld, dam and store searches",
+        ],
+        image="assets/images/full/wa-01-foot-patrol.webp",
+        alt="Vonlet officer walking a cleared sand boundary line between trees on a dry site",
+        note=CLIENT_NOTE,
+        source=None,
+        dispatch="farms-mines",
+        dispatch_label="Farms & mines security",
+    ),
+    dict(
+        slug="residential-security",
+        name="Residential security",
+        group="Sector security",
+        summary="Estates, complexes and private homes — gatehouse control, patrols of the common ground and response in the hours a house is empty.",
+        paragraphs=[
+            "Most residential loss happens inside a two-hour window: the school run, the workday, the house empty and the gate propped for a contractor. Vonlet mans the gatehouse, screens and registers visitors and tradespeople, and patrols the boundary and the common ground between them — on foot, or by quad bike where an estate is too large to walk twice an hour.",
+            "Where there is no gatehouse, the service is a roving patrol with a logged arrival time, keyholding, and an agreed response to an alarm, plus cover for staff and service entrances and for the days a family is away. House rules, gate codes and the neighbours' sensitivities are written into the standing orders before the first shift.",
+        ],
+        points=[
+            "Gatehouse duty with a visitor and contractor register",
+            "Roving patrols of boundary and common ground",
+            "Keyholding and alarm response",
+            "Absence, holiday and staff-hours cover",
+            "Standing orders agreed with the complex or owner",
+        ],
+        image="assets/images/full/wa-04-quad-lawn.webp",
+        alt="Vonlet officer on a quad bike on a lawn inside a razor-wire perimeter fence",
+        note=CLIENT_NOTE,
+        source=None,
+        dispatch="residential",
+        dispatch_label="Residential security",
+    ),
+    dict(
+        slug="functions-security",
+        name="Functions & event security",
+        group="Sector security",
+        summary="Guarding at weddings, funerals, launches and corporate functions — the guest list, the parking, and the property afterwards.",
+        paragraphs=[
+            "A function is a short, sharp security problem: a guest list that changes at the door, cash and gifts gathered in one room, alcohol, a crowded parking area, and a property at its most exposed the moment the last guest leaves. Vonlet crews are briefed to the list, control entry, keep the vehicles watched and stay on after the cleaning starts.",
+            "Crews can be deployed as visibly as a row of uniforms at the gate, or quietly enough to stay out of the photographs when a family asks for that. Dogs are available on the same booking for perimeter and parking coverage where the numbers justify them.",
+        ],
+        points=[
+            "Guest-list and gate control",
+            "Parking, vehicle and gift-room watch",
+            "Visible or discreet deployment by brief",
+            "Crowd and bar-queue management",
+            "After-event perimeter cover and sweep",
+        ],
+        image="assets/images/full/wa-07-veranda-post.webp",
+        alt="Armed Vonlet officer seated along a building veranda with a colleague at a desk behind him",
+        note=CLIENT_NOTE,
+        source=None,
+        dispatch="functions",
+        dispatch_label="Functions & event security",
+    ),
+    # --- Close protection & investigation, also client-supplied for this site.
+    dict(
+        slug="private-escorts",
+        name="Private escorts",
+        group="Protection & investigation",
+        summary="Escorted movement of people and valuables — principals, families and high-value consignments — with a protection officer in the vehicle.",
+        paragraphs=[
+            "Escort work covers the journey rather than the address. An officer travels with the principal, the family or a valuable consignment from door to door, on foot or in the client's own vehicle or one of Vonlet's. Routes are planned before wheels move, pickup and drop-off points are checked first, and the detail of the day — who is met, where the vehicle stops — stays with the crew rather than the front desk.",
+            "It is the service clients add when a fixed guard cannot follow them: an airport transfer, a business trip between towns, a payroll or valuation run, a school move at a time when the risk is personal rather than property. Escorts are unarmed or armed according to the threat assessment agreed with the client.",
+        ],
+        points=[
+            "Door-to-door protection of people in transit",
+            "Route planning with alternates, points checked first",
+            "Foot escort or vehicle escort, unarmed or armed",
+            "Airport transfers and inter-town travel",
+            "Cash, valuation and high-value consignment escort",
+            "Officers briefed to confidentiality, vetted as in training",
+        ],
+        image="assets/images/full/wa-06-armed-sentry.webp",
+        alt="Armed Vonlet officer seated at an entrance with a shotgun across his knees, hard hats and a crate beside him",
+        note=CLIENT_NOTE,
+        source=None,
+        dispatch="escorts",
+        dispatch_label="Private escorts",
+    ),
+    dict(
+        slug="private-investigations",
+        name="Private investigations",
+        group="Protection & investigation",
+        summary="Surveillance, verification and internal enquiry, closed out with a report written to be usable by an insurer, an advocate or the police.",
+        paragraphs=[
+            "Investigations answer the questions a guard cannot: who is shorting the till, who is passing information out of the yard, what an applicant was doing before they sent you the CV that arrived this morning. The work is surveillance, enquiry and verification, run against a brief agreed in advance — scope, dates, ground and what may and may not be recorded.",
+            "Every assignment closes with a written report: times, places, photographs, statements and the records checked, in a form that can be handed to an insurer, an advocate or the police. The enquiry is run alongside a guarding contract, never through the crew holding it, so the officers on site are not investigating their own shift. Enquiries stay within the law — no interception of communications, no entry to private premises.",
+        ],
+        points=[
+            "Covert surveillance and observation",
+            "Background, employment and reference verification",
+            "Internal theft, shrinkage and fraud enquiries",
+            "Evidence handling with an unbroken continuity record",
+            "Written report for insurer, advocate or police",
+            "Liaison with the Zimbabwe Republic Police where a case opens",
+        ],
+        image="assets/images/full/IMG_9260.webp",
+        alt="Vonlet officer reviewing paperwork beside a laptop in the operations room",
+        note=ARCHIVE_NOTE,
+        source=None,
+        dispatch="investigations",
+        dispatch_label="Private investigations",
     ),
     dict(
         slug="dog-services",
@@ -344,7 +543,7 @@ SERVICES = [
         summary="Management of the cash collection service, from task assignment to accounting for every book.",
         paragraphs=[
             "Cash-in-transit provides management of the cash collection service for CIT staff: the assignment of tasks, the selection of routes, and the accounting of all books. Runs are made with Vonlet's branded fleet.",
-            "Vonlet publishes CIT as a core service on its home page rather than as one of the fourteen individual service pages, which is why it completes the fifteen service lines here.",
+            "Vonlet publishes CIT as a core service on its home page rather than as one of the fourteen individual service pages, which is why it completes the fifteen lines the company publishes — the eight sector, escort and investigation lines below it were given to us for this site directly.",
         ],
         points=[
             "Task assignment",
@@ -361,7 +560,19 @@ SERVICES = [
     ),
 ]
 
-GROUPS_IN_ORDER = ["Manned guarding", "K-9", "Electronic security", "Training & safety", "Cash services"]
+GROUPS_IN_ORDER = [
+    "Manned guarding",
+    "Sector security",
+    "Protection & investigation",
+    "K-9",
+    "Electronic security",
+    "Training & safety",
+    "Cash services",
+]
+
+# Groups whose copy came from the company's own published pages, versus the
+# lines the company supplied for this site and has not published yet.
+PUBLISHED_GROUPS = {"Manned guarding", "K-9", "Electronic security", "Training & safety", "Cash services"}
 
 
 def esc(value: str) -> str:
@@ -373,14 +584,29 @@ def dispatch_href(service: dict) -> str:
     return f"index.html?service={service['dispatch']}&amp;label={label}#dispatch"
 
 
-def render_block(service: dict, position: int) -> str:
+def source_element(service: dict) -> str:
+    """A link back to the published page, or an honest label when there is none."""
+    if service.get("source"):
+        return (
+            f'<a class="service-source" href="{service["source"]}" rel="noopener">Source page '
+            '<svg class="icon" aria-hidden="true"><use href="#i-up-right"/></svg></a>'
+        )
+    return f'<span class="service-source service-source--local">{LOCAL_ONLY}</span>'
+
+
+def render_block(service: dict, position: int, total: int) -> str:
     paragraphs = "\n              ".join(f"<p>{p}</p>" for p in service["paragraphs"])
     points = "\n                ".join(f"<li>{p}</li>" for p in service["points"])
-    note_class = "service-media-note service-media-note--concept" if service["note"] == CONCEPT_NOTE else "service-media-note"
+    if service["note"] == CONCEPT_NOTE:
+        note_class = "service-media-note service-media-note--concept"
+    elif service["note"] == CLIENT_NOTE:
+        note_class = "service-media-note service-media-note--client"
+    else:
+        note_class = "service-media-note"
     return f'''          <article class="service-block" id="{service["slug"]}">
             <div class="service-block-media">
               <img src="{service["image"]}" alt="{esc(service["alt"])}" loading="lazy" decoding="async">
-              <span class="service-block-index">{position:02d} / 15</span>
+              <span class="service-block-index">{position:02d} / {total:02d}</span>
               <span class="{note_class}">{service["note"]}</span>
             </div>
             <div class="service-block-body">
@@ -395,7 +621,7 @@ def render_block(service: dict, position: int) -> str:
               </ul>
               <div class="service-block-actions">
                 <a class="button button--red" href="{dispatch_href(service)}">Request this service <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-                <a class="service-source" href="{service["source"]}" rel="noopener">Source page <svg class="icon" aria-hidden="true"><use href="#i-up-right"/></svg></a>
+                {source_element(service)}
               </div>
             </div>
           </article>'''
@@ -408,21 +634,21 @@ def main() -> None:
 
     head = head.replace(
         "<title>Vonlet Security — Guarding, K-9 and Electronic Security in Zimbabwe &amp; Zambia</title>",
-        "<title>All Fifteen Service Lines — Armed Guards, K-9, CCTV, Training | Vonlet Security</title>",
+        "<title>All Twenty-Three Service Lines — Guards, Bank &amp; ATM, Farms &amp; Mines, Escorts | Vonlet Security</title>",
     )
     head = re.sub(
         r'<meta name="description" content="[^"]*">',
-        '<meta name="description" content="Every Vonlet service line on one page: armed and unarmed guards, undercover guards, K-9 services and dog handling, CCTV, access control, intruder alarms, rapid response, guard monitoring, fire drill, first aid, guard and firearm training, and cash-in-transit.">',
+        '<meta name="description" content="Every Vonlet service line on one page: armed and unarmed guards, bank and ATM, warehouse, retail, farms and mines, residential, functions, private escorts and investigations, undercover guards, K-9, CCTV, access control, alarms, rapid response, guard monitoring, training and cash-in-transit.">',
         head,
         count=1,
     )
     head = head.replace(
         '<meta property="og:title" content="Vonlet Security — People. Technology. Response.">',
-        '<meta property="og:title" content="Vonlet Security — All Fifteen Service Lines">',
+        '<meta property="og:title" content="Vonlet Security — All Twenty-Three Service Lines">',
     )
     head = re.sub(
         r'<meta property="og:description" content="[^"]*">',
-        '<meta property="og:description" content="The complete Vonlet service catalogue: guarding, K-9, electronic security, training and cash-in-transit, each described from the company\'s own published information.">',
+        '<meta property="og:description" content="The complete Vonlet service catalogue: guarding by sector, close protection and investigations, K-9, electronic security, training and cash-in-transit — described from the company\'s own information.">',
         head,
         count=1,
     )
@@ -463,15 +689,15 @@ def main() -> None:
     )
     tail = tail.replace(
         '<a href="index.html#services">Our services</a>',
-        '<a href="services.html">All fifteen service lines</a>',
+        '<a href="services.html">All twenty-three service lines</a>',
     )
     tail = tail.replace(
         '<a href="index.html#services">Armed &amp; unarmed guards</a><a href="index.html#services">K-9 services</a><a href="index.html#services">Electronic security</a><a href="index.html#services">Cash-in-transit</a><a href="https://vonletsecurity.co.zw/services/" rel="noopener">All services on vonletsecurity.co.zw</a>',
-        '<a href="services.html#armed-guards">Armed &amp; unarmed guards</a><a href="services.html#dog-services">K-9 services</a><a href="services.html#close-circuit-television-cctv">Electronic security</a><a href="services.html#cash-in-transit">Cash-in-transit</a><a href="services.html">All fifteen service lines</a>',
+        '<a href="services.html#armed-guards">Armed &amp; unarmed guards</a><a href="services.html#dog-services">K-9 services</a><a href="services.html#close-circuit-television-cctv">Electronic security</a><a href="services.html#cash-in-transit">Cash-in-transit</a><a href="services.html">All twenty-three service lines</a>',
     )
     tail = tail.replace(
         '<div class="noscript-note">All 152 archive photographs and the contact details work without JavaScript. Enable JavaScript to use collection filters, full-size previews, the estimator and request preparation.</div>',
-        '<div class="noscript-note">All fifteen service lines, the contact details and the hotline work without JavaScript. Enable JavaScript to filter the archive or prepare a dispatch request.</div>',
+        '<div class="noscript-note">All twenty-three service lines, the contact details and the hotline work without JavaScript. Enable JavaScript to filter the archive or prepare a dispatch request.</div>',
     )
 
     chips = "\n            ".join(
@@ -479,18 +705,22 @@ def main() -> None:
     )
     group_counts = {g: sum(1 for s in SERVICES if s["group"] == g) for g in GROUPS_IN_ORDER}
     legend = " · ".join(f"{g.upper()} ({group_counts[g]})" for g in GROUPS_IN_ORDER)
+    published = sum(1 for s in SERVICES if s["group"] in PUBLISHED_GROUPS)
+    supplied = len(SERVICES) - published
 
-    blocks = "\n".join(render_block(service, i) for i, service in enumerate(SERVICES, start=1))
+    blocks = "\n".join(
+        render_block(service, i, len(SERVICES)) for i, service in enumerate(SERVICES, start=1)
+    )
 
     main = f'''
     <section class="page-hero" aria-labelledby="services-page-title">
       <div class="container">
         <p class="eyebrow"><span class="eyebrow-line"></span> SERVICES / COMPLETE CATALOGUE</p>
-        <h1 id="services-page-title">Fifteen ways<br><span>we protect.</span></h1>
-        <p class="page-hero-lead">Every service line Vonlet publishes — the fourteen on the company's service pages plus cash-in-transit from its home page — described here in full, on this site, without sending you elsewhere. Each block links back to the page it came from so you can check it against the original.</p>
+        <h1 id="services-page-title">Twenty-three ways<br><span>we protect.</span></h1>
+        <p class="page-hero-lead">Every service line Vonlet offers — the {published} it publishes on its own site (fourteen service pages plus cash-in-transit from the home page) and {supplied} sector, close-protection and investigation lines the company gave us directly for this site — described here in full, on this site, without sending you elsewhere. Published blocks link back to the page they came from; supplied blocks say so in their place.</p>
         <ul class="page-hero-stats">
-          <li><strong>15</strong><span>SERVICE LINES</span></li>
-          <li><strong>5</strong><span>GROUPS</span></li>
+          <li><strong>{len(SERVICES)}</strong><span>SERVICE LINES</span></li>
+          <li><strong>{len(GROUPS_IN_ORDER)}</strong><span>GROUPS</span></li>
           <li><strong>2010</strong><span>SERVING SINCE</span></li>
         </ul>
         <div class="page-hero-actions">
@@ -508,8 +738,9 @@ def main() -> None:
             {chips}
           </nav>
           <p class="service-jump-legend">{legend}</p>
+          <p class="service-jump-legend">{published} lines are published on vonletsecurity.co.zw and linked to their source page below; the {supplied} under SECTOR SECURITY and PROTECTION &amp; INVESTIGATION were given to us by the company for this site and are awaiting publication there.</p>
         </div>
-        <h2 class="sr-only" id="catalogue-title">The fifteen Vonlet service lines</h2>
+        <h2 class="sr-only" id="catalogue-title">The {len(SERVICES)} Vonlet service lines</h2>
 {blocks}
         <div class="service-close reveal">
           <div>

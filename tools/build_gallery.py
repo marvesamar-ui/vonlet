@@ -71,6 +71,12 @@ COLLECTIONS = {
         "kit": "Guard post|Access register|Two-way radio|Site keys",
         "service": "unarmed",
     },
+    "sites": {
+        "label": "Site deployments",
+        "brief": "Recent frames the company sent us directly from a live deployment: a gatehouse register, quad-bike patrols of a razor-wire perimeter, armed posts along a site office and a foot patrol on a cleared boundary line. They illustrate the sector work - warehouse, farms and mines, residential, functions - described on the services page.",
+        "kit": "Quad bike|Occurrence book|Perimeter fence|Two-way radio",
+        "service": "integrated",
+    },
     "fleet": {
         "label": "Fleet & logistics",
         "brief": "Vonlet's branded vehicles support patrol supervision, personnel movement and equipment delivery, including covered trucks used for secure movement of goods.",
@@ -150,6 +156,15 @@ PHOTOS = [
     # --- Canine unit ------------------------------------------------------
     ("IMG_9294", "k9", "Handler and service dog", "Vonlet handler kneeling with a service dog beside the branded car"),
     ("IMG_9297", "k9", "K-9 patrol pair", "Handler and dog standing beside a company vehicle"),
+
+    # --- Site deployments (frames the client sent directly, Nov 2026) ------
+    ("wa-01-foot-patrol", "sites", "Cleared boundary, walked", "Vonlet officer walking a cleared sand boundary line between trees on a dry site"),
+    ("wa-02-gatehouse-register", "sites", "Gatehouse duty", "Two Vonlet officers at a guard desk with occurrence books and a two-way radio"),
+    ("wa-03-quad-driveway", "sites", "Quad bike to the main gate", "Vonlet officer riding a quad bike up a concrete driveway past a gated entrance"),
+    ("wa-04-quad-lawn", "sites", "Patrolling inside the fence", "Vonlet officer on a quad bike on a lawn inside a razor-wire perimeter fence"),
+    ("wa-05-site-desk-pair", "sites", "Post at the site desk", "Two Vonlet officers at a desk outside a site building, one seated with a rifle across his knees"),
+    ("wa-06-armed-sentry", "sites", "Armed sentry at the entrance", "Armed Vonlet officer seated at an entrance with a shotgun, hard hats and a kit crate beside him"),
+    ("wa-07-veranda-post", "sites", "Veranda post and relief", "Armed Vonlet officer seated along a building veranda with a colleague at a desk behind him"),
 ]
 
 # Lead each collection with its strongest frame, then interleave collections so
@@ -160,24 +175,30 @@ COVER = {
     "operations": "IMG_9250",
     "people": "IMG_9363",
     "field": "IMG_9326",
+    "sites": "wa-04-quad-lawn",
     "tech": "IMG_9399",
     "k9": "IMG_9294",
     "office": "IMG_9343",
     "fleet": "IMG_9336",
     "training": "IMG_9261",
 }
-ORDER = ["leadership", "tactical", "operations", "people", "field", "tech", "k9", "office", "fleet", "training"]
+ORDER = ["leadership", "tactical", "operations", "people", "field", "sites", "tech", "k9", "office", "fleet", "training"]
 
-# The landing page shows a dozen frames; the complete set lives on archive.html.
+# The landing page shows a curated set; the complete archive lives on archive.html.
+# Two of the frames the client sent directly are carried up here so the sector
+# work (warehouses, farms and mines, residential estates) is visible on the
+# landing page, not only on the catalogue.
 FEATURED = [
     "IMG_9346",  # leadership
     "IMG_9299",  # tactical
     "IMG_9250",  # operations room
     "IMG_9326",  # field team with the mobile office
+    "wa-04-quad-lawn",  # site deployments: quad patrol inside the fence
     "IMG_9399",  # electronic security
     "IMG_9294",  # K-9 handler
     "IMG_9343",  # reception & office
     "IMG_9336",  # fleet & logistics
+    "wa-02-gatehouse-register",  # site deployments: gatehouse register
     "IMG_9274",  # strategy & training
     "IMG_9280",  # people & teams
     "IMG_9409",  # ATM duty officer

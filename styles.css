@@ -812,6 +812,27 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
 /* The archive mixes landscape and portrait frames: show the whole photograph in the viewer. */
 .lightbox-media > img { object-fit: contain; }
 
+/* ---------- Sectors we guard (landing page strip) ---------- */
+.service-sectors { grid-column: 1 / -1; display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; margin-top: 46px; padding-top: 30px; border-top: 1px solid var(--line); }
+.service-sectors-head .eyebrow { display: flex; align-items: center; gap: 12px; margin: 0; }
+.service-sectors-tag { padding: 4px 8px; border: 1px solid var(--line-strong); color: var(--yellow); font-family: var(--font-mono); font-size: 8px; letter-spacing: .12em; }
+.service-sectors-head > p:last-child { max-width: 42ch; margin-top: 10px; color: var(--slate-500); font-size: 12px; line-height: 1.7; }
+.service-sectors-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin: 0; list-style: none; background: var(--line); border: 1px solid var(--line); }
+.service-sectors-grid li { background: linear-gradient(120deg, var(--navy-850), var(--navy-950)); }
+.service-sectors-grid a { display: flex; align-items: center; gap: 12px; padding: 14px; color: var(--slate-300); font-size: 13px; font-weight: 600; text-decoration: none; transition: background .2s, color .2s; }
+.service-sectors-grid a:hover { background: var(--navy-800); color: var(--yellow); }
+.service-sectors-grid a span { color: var(--slate-500); font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; transition: color .2s; }
+.service-sectors-grid a:hover span { color: var(--yellow); }
+.service-sectors-grid .icon { width: 13px; height: 13px; margin-left: auto; color: var(--slate-500); }
+.service-sectors-grid a:hover .icon { color: var(--yellow); }
+@media (max-width: 1024px) {
+  .service-sectors { grid-template-columns: 1fr; gap: 22px; }
+}
+@media (max-width: 600px) {
+  .service-sectors { margin-top: 34px; padding-top: 26px; }
+  .service-sectors-grid { grid-template-columns: 1fr; }
+}
+
 /* ---------- Full service index ---------- */
 .service-index { grid-column: 1 / -1; display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; margin-top: 54px; padding-top: 34px; border-top: 1px solid var(--line); }
 .service-index-head > p:last-child { max-width: 42ch; margin-top: 10px; color: var(--slate-500); font-size: 12px; line-height: 1.7; }
@@ -939,6 +960,7 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
 .service-block-index { position: absolute; top: 14px; left: 14px; padding: 6px 9px; background: rgba(3, 8, 22, .82); color: var(--yellow); font-family: var(--font-mono); font-size: 8px; letter-spacing: .12em; }
 .service-media-note { display: block; padding: 10px 14px; border-top: 1px solid var(--line); color: var(--slate-500); font-family: var(--font-mono); font-size: 8px; letter-spacing: .12em; }
 .service-media-note--concept { color: var(--yellow); }
+.service-media-note--client { color: var(--slate-400); }
 .service-block-body h2 { margin: 12px 0 0; font-family: var(--font-display); font-size: clamp(30px, 3vw, 44px); font-weight: 700; line-height: 1.02; text-transform: uppercase; }
 .service-block-summary { margin-top: 16px; color: var(--white); font-size: 16px; line-height: 1.6; }
 .service-block-copy { margin-top: 16px; display: grid; gap: 12px; }
@@ -950,6 +972,8 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
 .service-source { display: inline-flex; align-items: center; gap: 6px; color: var(--slate-400); font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; text-decoration: none; }
 .service-source:hover { color: var(--yellow); }
 .service-source .icon { width: 12px; height: 12px; }
+/* A line the company supplied for this site has no published page to point at. */
+.service-source--local { max-width: 52ch; line-height: 1.6; color: var(--slate-500); }
 
 .service-close { display: flex; justify-content: space-between; align-items: center; gap: 40px; margin-top: 20px; padding: 38px 34px; border: 1px solid var(--line-strong); background: linear-gradient(120deg, var(--navy-850), var(--navy-900)); }
 .service-close h2 { margin: 12px 0 0; font-family: var(--font-display); font-size: clamp(28px, 2.6vw, 40px); font-weight: 700; line-height: 1.04; text-transform: uppercase; }
@@ -971,7 +995,7 @@ dialog::backdrop { background: rgba(2, 6, 17, .84); backdrop-filter: blur(7px); 
   .service-close-actions .button { width: 100%; justify-content: center; }
 }
 
-/* The fifteen-line index on the landing page carries a call to action. */
+/* The twenty-three-line index on the landing page carries a call to action. */
 .service-index-head .button { margin-top: 16px; }
 
 /* ---------- Dispatch: WhatsApp handoff ---------- */

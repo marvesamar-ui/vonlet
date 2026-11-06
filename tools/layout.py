@@ -399,6 +399,15 @@ class Page:
         args += ["-geometry", f"+{dx}+{dy}", "-compose", "over", "-composite"]
         return args
 
+    def render_to_image(self):
+        """Render to a Pillow RGBA image instead of a file."""
+        from PIL import Image
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td) / "page.png"
+            self.render(tmp)
+            return Image.open(tmp).convert("RGBA")
+
     def render(self, out: Path, preview_scale: float | None = None) -> None:
         out.parent.mkdir(parents=True, exist_ok=True)
         cmd = ["convert"] + self._args()

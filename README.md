@@ -41,6 +41,9 @@ Then visit `http://localhost:8080`.
 - `tools/magazine_bits.py` — shared furniture for the magazine (running heads, folios, captions, stat blocks, brand lockup).
 - `tools/build_magazine.py` — the ten-page magazine.
 - `tools/build_signage.py` — the fifteen-board signage and reception kit.
+- `tools/build_signage_plans.py` — the A3 technical elevation sheets.
+- `tools/build_signage_3d.py` — the in-situ scene renders, driven by a table of measured quads.
+- `tools/insitu.py` — the compositing engine: homography warp, wall-matched lighting, extruded panel edges, contact shadows, substrate grain.
 
 ## Magazine and signage
 
@@ -48,6 +51,8 @@ Two print sets are generated from the site's own copy and photography.
 
 - `magazine/vonlet-review/` — **THE REVIEW, issue 01**, ten A4 pages at 300 dpi with 3 mm bleed: cover, contents, who we are, the full 23-line catalogue, banking & corporate posts, guarding on the ground, fleet & technology, cash in transit, training & people, and back cover. PNGs for each page, a 10-page print PDF and a contact sheet. `magazine/vonlet-review/README.md` carries the page plan, provenance notes and the rebuild command. Built from `assets/images/master/` — never from the watermarked site images.
 - `signage/` — fifteen boards for the gate, the perimeter, reception, the fleet, staff and events: a 3.6 m gate pylon, gate plate, three warning boards, the 5.2 m reception wall, desk fascia, after-hours board, vehicle livery, notice board, hi-vis vest back, company plaque, event backdrop, wayfinding and an A-frame. Every board is drawn in millimetres at its real size, so each file goes straight to a fabricator. `signage/README.md` has the size table, materials, installation heights and the clear-space rules.
+- `signage/plans/` — three A3 technical elevations with dimensions, title blocks, scale bars and numbered callouts: the gate pylon, the reception wall, and the three warning boards with a mounting section through the stand-offs. These are the drawings a shopfitter works from.
+- `signage/insitu/` — nine photorealistic renders of the boards on real walls: the pylon on a free-standing monolith, the portrait sign inset into the concrete gate pillar, the reception wall on a lobby wall, the desk fascia, and the smaller boards on a painted exterior wall. True perspective, wall-matched lighting and real panel thickness, all from `tools/insitu.py`; no 3D package or GPU is involved.
 
 Both sets keep the site's provenance discipline. Nothing in either is invented, and no generated image appears in the signage at all.
 

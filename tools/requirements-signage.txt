@@ -1,0 +1,6 @@
+# Dependencies for the signage in-situ renders and the diagram tooling.
+# Everything else in tools/ needs only ImageMagick and the stdlib.
+numpy>=2.0
+pillow>=10.0
+fonttools>=4.40
+brotli>=1.0

@@ -289,10 +289,11 @@ def render_card(row: tuple[str, str, str, str], indent: str = "          ") -> s
         f'{indent}  data-equipment="{html.escape(meta["kit"], quote=True)}">\n'
         f'{indent}  <button class="mission-open" type="button" aria-haspopup="dialog" aria-label="Expand photograph: {html.escape(title, quote=True)}">\n'
         f'{indent}    <img src="assets/images/thumbs/{name}.webp" alt="{html.escape(alt, quote=True)}" width="{width}" height="{height}" loading="lazy" decoding="async">\n'
-        f'{indent}    <span class="card-scrim" aria-hidden="true"></span>\n'
-        f'{indent}    <span class="mission-info"><span class="mission-category">{html.escape(meta["label"].upper())}</span><span class="mission-title">{html.escape(title)}</span></span>\n'
-        f'{indent}    <span class="card-expand" aria-hidden="true"><svg class="icon"><use href="#i-up-right"/></svg></span>\n'
         f'{indent}  </button>\n'
+        f'{indent}  <div class="mission-info">\n'
+        f'{indent}    <span class="mission-category">{html.escape(meta["label"].upper())}</span>\n'
+        f'{indent}    <span class="mission-title">{html.escape(title)}</span>\n'
+        f'{indent}  </div>\n'
         f'{indent}</article>'
     )
 

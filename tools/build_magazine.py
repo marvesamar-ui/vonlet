@@ -11,6 +11,7 @@ Writes magazine/vonlet-review/:
 
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 from pathlib import Path
@@ -23,39 +24,75 @@ from layout import (  # noqa: E402
     SLATE_300, SLATE_400, SLATE_500, WHITE, YELLOW, Page, text_width,
 )
 from magazine_bits import (  # noqa: E402
-    ISSUE, LOGO, M, OUT, STRAP, W, H, brand, caption, folio_line, photo,
-    running_head, stat,
+    ISSUE, LOGO, M, OUT, STRAP, W, H, apply_theme, brand, caption, folio_line,
+    photo, running_head, stat,
 )
 from build_services import GROUPS_IN_ORDER, SERVICES  # noqa: E402
 
 BY_SLUG = {s["slug"]: s for s in SERVICES}
+
+# Scrims are not part of the palette. They exist to put light type on a
+# photograph, so they stay dark in both editions; only the page field flips.
+SCRIM = "3,8,22"
+SCRIM_BAND = f"rgba({SCRIM},1.0)"
+SCRIM_SOFT = f"rgba({SCRIM},0.86)"
+SCRIM_MID = f"rgba({SCRIM},0.55)"
+SCRIM_FIRM = f"rgba({SCRIM},0.80)"
+SCRIM_CLEAR = f"rgba({SCRIM},0.0)"
+SCRIM_HEX = "#030816"
+
+# Set by apply_theme(); the page builders read it where a treatment is
+# genuinely edition-specific rather than a palette swap.
+THEME = "dark"
+
+# Marker so apply_theme can find this module however it was loaded — as
+# `build_magazine`, or as `__main__` when the file is run directly.
+_THEMED = True
+
+
+# Type that sits on a photograph under a dark scrim, or on a scrim panel over
+# one. The ground behind it is dark in both editions, so the type is light in
+# both editions — this is the one place the palette must NOT follow the theme.
+ON_DARK = "#f8fafc"
+ON_DARK_MUTED = "#cbd5e1"
+ON_DARK_ACCENT = "#facc15"
+
+
+def page() -> Page:
+    """A page on the current edition's field colour.
+
+    `Page.background` is a class attribute, evaluated once when `layout` was
+    imported, so a themed build has to pass the field explicitly or every page
+    keeps the navy it was born with.
+    """
+    return Page(margin=(M, M, M, M), background=NAVY)
 
 
 # ---------------------------------------------------------------------------
 # 01 — COVER
 # ---------------------------------------------------------------------------
 def cover() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     # full-bleed hero
     p.image(0, 0, W, H, ROOT / "assets/images/master/full/IMG_9309.webp", focus=(0.62, 0.42))
     # legibility: a graduated head band for the lockup, a deep foot for the type
-    p.grad(0, 0, W, 58, "rgba(3,8,22,0.86)-rgba(3,8,22,0.0)")
-    p.grad(0, 156, W, 141, "rgba(3,8,22,0.0)-rgba(3,8,22,0.96)")
+    p.grad(0, 0, W, 58, f"{SCRIM_SOFT}-{SCRIM_CLEAR}")
+    p.grad(0, 156, W, 141, f"{SCRIM_CLEAR}-rgba({SCRIM},0.96)")
     # top brand lockup
     p.image(M, 15, 15, 15, LOGO, focus=(0.5, 0.5))
-    p.text(M + 20, 24.2, "VONLET", "cond-bold", 7.2, INK, 0.5)
-    p.kicker(0, 24.2, ISSUE, YELLOW, 2.3, 0.34, align="right", width=W - M)
-    p.kicker(M + 20, 28.4, "SECURITY SERVICES · ZIMBABWE & ZAMBIA", INK, 1.85, 0.3)
+    p.text(M + 20, 24.2, "VONLET", "cond-bold", 7.2, ON_DARK, 0.5)
+    p.kicker(0, 24.2, ISSUE, ON_DARK_ACCENT, 2.3, 0.34, align="right", width=W - M)
+    p.kicker(M + 20, 28.4, "SECURITY SERVICES · ZIMBABWE & ZAMBIA", ON_DARK, 1.85, 0.3)
 
-    p.text(M, 205, "Every service.", "cond-bold", 21, INK)
-    p.text(M, 226, "Photographed", "cond-bold", 21, YELLOW)
-    p.text(M, 247, "in service.", "cond-bold", 21, INK)
-    p.rule(M, 256, 62, 0.5, LINE_STRONG)
+    p.text(M, 205, "Every service.", "cond-bold", 21, ON_DARK)
+    p.text(M, 226, "Photographed", "cond-bold", 21, ON_DARK_ACCENT)
+    p.text(M, 247, "in service.", "cond-bold", 21, ON_DARK)
+    p.rule(M, 256, 62, 0.5, "#334155")
     p.paragraph(M, 265, 92,
                 "Twenty-three service lines, from armed guarding to "
                 "cash-in-transit, delivered across Zimbabwe and Zambia since 2010.",
-                "body", 3.3, 1.55, INK)
-    p.kicker(M, 288, STRAP, YELLOW, 2.15, 0.34)
+                "body", 3.3, 1.55, ON_DARK)
+    p.kicker(M, 288, STRAP, ON_DARK_ACCENT, 2.15, 0.34)
     return p
 
 
@@ -75,7 +112,7 @@ CONTENTS = [
 
 
 def contents() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     running_head(p, 2, "CONTENTS")
     brand(p, 26)
 
@@ -118,7 +155,7 @@ def contents() -> Page:
 # 03 — WHO WE ARE
 # ---------------------------------------------------------------------------
 def who_we_are() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     running_head(p, 3, "WHO WE ARE")
 
     p.text(M, 44, "Growing", "cond-bold", 15, INK)
@@ -211,7 +248,7 @@ GROUP_COPY = {
 
 
 def catalogue() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     running_head(p, 4, "THE CATALOGUE")
 
     p.text(M, 44, "Twenty-three", "cond-bold", 14, INK)
@@ -264,18 +301,19 @@ def catalogue() -> Page:
 # 05 — FEATURE: BANKING & CORPORATE POSTS
 # ---------------------------------------------------------------------------
 def banking_feature() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     # top image band
     p.image(0, 0, W, 118, ROOT / "assets/images/master/full/wa-11-bank-duty-suit.webp",
             focus=(0.55, 0.3))
-    p.grad(0, 0, W, 84, "rgba(3,8,22,0.55)-rgba(3,8,22,0.0)")
-    p.grad(0, 0, 118, 84, "rgba(3,8,22,0.80)-rgba(3,8,22,0.0)", angle=90)
-    p.grad(0, 86, W, 32, "rgba(3,8,22,0.0)-rgba(3,8,22,1.0)")
+    p.grad(0, 0, W, 84, f"{SCRIM_MID}-{SCRIM_CLEAR}")
+    p.grad(0, 0, 118, 84, f"{SCRIM_FIRM}-{SCRIM_CLEAR}", angle=90)
+    p.grad(0, 86, W, 32, f"{SCRIM_CLEAR}-{SCRIM_BAND}")
 
-    p.kicker(M, 22, "FEATURE — BANKING & CORPORATE POSTS", YELLOW, 2.2, 0.3)
-    p.text(M, 40, "A post that reads", "cond-bold", 13, INK)
-    p.text(M, 52, "professional", "cond-bold", 13, YELLOW)
-    p.text(M, 64, "before it reads security.", "cond-bold", 13, INK)
+    # the feature headline is set on the photograph, not on the paper
+    p.kicker(M, 22, "FEATURE — BANKING & CORPORATE POSTS", ON_DARK_ACCENT, 2.2, 0.3)
+    p.text(M, 40, "A post that reads", "cond-bold", 13, ON_DARK)
+    p.text(M, 52, "professional", "cond-bold", 13, ON_DARK_ACCENT)
+    p.text(M, 64, "before it reads security.", "cond-bold", 13, ON_DARK)
 
     # three proof frames across the measure, captions tight beneath them
     frames = [
@@ -337,7 +375,7 @@ def banking_feature() -> Page:
 # 06 — FEATURE: GUARDING ON THE GROUND
 # ---------------------------------------------------------------------------
 def ground_feature() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     p.background = NAVY
     running_head(p, 6, "FEATURE — GUARDING ON THE GROUND")
 
@@ -366,10 +404,10 @@ def ground_feature() -> Page:
     # full-width patrol frame
     p.image(M, 176, W - 2 * M, 62, ROOT / "assets/images/master/full/wa-01-foot-patrol.webp",
             focus=(0.5, 0.4))
-    p.scrim_panel(M, 216, W - 2 * M, 22, NAVY, 0.8)
-    p.kicker(M + 6, 224, "CLEARED BOUNDARY, WALKED", YELLOW, 2.0, 0.28)
+    p.scrim_panel(M, 216, W - 2 * M, 22, SCRIM_HEX, 0.8)
+    p.kicker(M + 6, 224, "CLEARED BOUNDARY, WALKED", ON_DARK_ACCENT, 2.0, 0.28)
     p.text(M + 6, 232, "Patrol routes and check-times are set by the site risk assessment.",
-           "cond-semi", 3.8, INK)
+           "cond-semi", 3.8, ON_DARK)
 
     # points row
     pts = [
@@ -391,7 +429,7 @@ def ground_feature() -> Page:
 # 07 — FLEET, TECHNOLOGY & THE CONTROL ROOM
 # ---------------------------------------------------------------------------
 def fleet_feature() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     running_head(p, 7, "FLEET, TECHNOLOGY & THE CONTROL ROOM")
 
     p.text(M, 46, "Capability, down", "cond-bold", 13, INK)
@@ -400,9 +438,9 @@ def fleet_feature() -> Page:
     # hero: rapid response vehicle
     p.image(M, 68, W - 2 * M, 74, ROOT / "assets/images/master/full/wa-08-rapid-response-vehicle.webp",
             focus=(0.5, 0.5))
-    p.scrim_panel(M, 122, W - 2 * M, 20, NAVY, 0.78)
-    p.kicker(M + 6, 130, "BRANDED RESPONSE FLEET", YELLOW, 2.0, 0.28)
-    p.text(M + 6, 138, "RAPID RESPONSE, ON THE FORECOURT", "cond-semi", 3.6, INK)
+    p.scrim_panel(M, 122, W - 2 * M, 20, SCRIM_HEX, 0.78)
+    p.kicker(M + 6, 130, "BRANDED RESPONSE FLEET", ON_DARK_ACCENT, 2.0, 0.28)
+    p.text(M + 6, 138, "RAPID RESPONSE, ON THE FORECOURT", "cond-semi", 3.6, ON_DARK)
 
     # four capability cards
     cards = [
@@ -447,7 +485,7 @@ def fleet_feature() -> Page:
 # 08 — CASH IN TRANSIT
 # ---------------------------------------------------------------------------
 def cit_feature() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     running_head(p, 8, "CASH IN TRANSIT")
 
     p.text(M, 46, "Cash in transit,", "cond-bold", 13, INK)
@@ -474,7 +512,7 @@ def cit_feature() -> Page:
         x += 43.5
 
     # provenance band — non-negotiable
-    p.rect(M, 166, W - 2 * M, 13, fill="#1a1405")
+    p.rect(M, 166, W - 2 * M, 13, fill="#1a1405" if THEME == "dark" else "#fdf6e3")
     p.vrule(M, 166, 13, 1.2, YELLOW)
     p.kicker(M + 7, 172, "ILLUSTRATIVE — AI-GENERATED CONCEPT IMAGERY, NOT COMPANY PHOTOGRAPHS",
              YELLOW, 1.95, 0.22)
@@ -520,7 +558,7 @@ def cit_feature() -> Page:
 # 09 — TRAINING, PEOPLE & K-9
 # ---------------------------------------------------------------------------
 def training_feature() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     running_head(p, 9, "TRAINING, PEOPLE & THE K-9 UNIT")
 
     p.text(M, 46, "Nobody wears", "cond-bold", 13, INK)
@@ -592,21 +630,22 @@ def training_feature() -> Page:
 # 10 — BACK COVER
 # ---------------------------------------------------------------------------
 def back_cover() -> Page:
-    p = Page(margin=(M, M, M, M))
+    p = page()
     p.image(0, 0, W, 200, ROOT / "assets/images/master/full/wa-09-suit-team-entrance.webp",
             focus=(0.5, 0.26))
-    p.grad(0, 0, W, 58, "rgba(3,8,22,0.84)-rgba(3,8,22,0.0)")
-    # the picture darkens into the paper's navy, then ends on a hard yellow rule
-    p.grad(0, 138, W, 62, "rgba(3,8,22,0.0)-rgba(3,8,22,1.0)")
+    p.grad(0, 0, W, 58, f"rgba({SCRIM},0.84)-{SCRIM_CLEAR}")
+    # the picture darkens into the page field, then ends on a hard accent rule
+    p.grad(0, 138, W, 62, f"{SCRIM_CLEAR}-{SCRIM_BAND}")
     p.rect(0, 200, W, H - 200, fill=NAVY)
     p.rect(0, 197, W, 3, fill=YELLOW)
 
     p.image(M, 15, 21, 21, LOGO, focus=(0.5, 0.5))
-    p.text(M + 27, 24.4, "VONLET", "cond-bold", 9.2, INK, 0.5)
-    p.kicker(M + 27, 29.8, "SECURITY SERVICES", INK, 2.3, 0.34)
+    # the lockup and the closing line sit on the photograph, not on the paper
+    p.text(M + 27, 24.4, "VONLET", "cond-bold", 9.2, ON_DARK, 0.5)
+    p.kicker(M + 27, 29.8, "SECURITY SERVICES", ON_DARK, 2.3, 0.34)
 
-    p.text(M, 175, "Ready when you", "cond-bold", 17.5, INK)
-    p.text(M, 191, "need us.", "cond-bold", 17.5, YELLOW)
+    p.text(M, 175, "Ready when you", "cond-bold", 17.5, ON_DARK)
+    p.text(M, 191, "need us.", "cond-bold", 17.5, ON_DARK_ACCENT)
 
     p.kicker(M, 213, "24/7 RAPID RESPONSE", YELLOW, 2.1, 0.3)
     p.text(M, 226, "+263 772 856 852", "cond-bold", 14, INK)
@@ -653,8 +692,17 @@ def ensure_pdf_policy() -> None:
 
 # ---------------------------------------------------------------------------
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--theme", default="dark", choices=("dark", "light"),
+                    help="palette to typeset the issue in (default: dark)")
+    args = ap.parse_args()
+
     ensure_pdf_policy()
-    OUT.mkdir(parents=True, exist_ok=True)
+    apply_theme(args.theme)
+    # The two editions must not overwrite each other: each theme gets its own
+    # folder, so a rebuild of one leaves the other exactly as it was.
+    out = OUT if args.theme == "dark" else OUT.with_name(OUT.name + "-light")
+    out.mkdir(parents=True, exist_ok=True)
     pages = [
         ("01-cover", cover()),
         ("02-contents", contents()),
@@ -670,25 +718,27 @@ def main() -> None:
 
     rendered = []
     for name, page in pages:
-        target = OUT / f"{name}.png"
+        target = out / f"{name}.png"
         page.render(target)
         rendered.append(target)
         print(f"  {target.name:<32} {target.stat().st_size // 1024:>5} KB")
 
     # print-ready PDF of the ten pages, in order
-    pdf = OUT / "vonlet-review.pdf"
+    pdf = out / "vonlet-review.pdf"
     subprocess.run(["convert", *[str(p) for p in rendered],
                     "-units", "PixelsPerInch", "-density", "300",
                     "-compress", "jpeg", "-quality", "92", str(pdf)], check=True)
     print(f"  {pdf.name:<32} {pdf.stat().st_size // 1024:>5} KB")
 
     # contact sheet
-    sheet = OUT / "contact-sheet.png"
+    sheet = out / "contact-sheet.png"
     subprocess.run(["montage", *[str(p) for p in rendered],
                     "-tile", "5x2", "-geometry", "420x594+8+8",
-                    "-background", "#030816", "-depth", "8", str(sheet)], check=True)
+                    "-background", "#ffffff" if args.theme == "light" else "#030816",
+                    "-depth", "8", str(sheet)], check=True)
     print(f"  {sheet.name:<32} {sheet.stat().st_size // 1024:>5} KB")
 
 
 if __name__ == "__main__":
     main()
+

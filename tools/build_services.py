@@ -103,9 +103,9 @@ SERVICES = [
             "Reporting and evaluation of weak points",
             "Cash theft, shoplifting and vandalism prevention",
         ],
-        image="assets/images/full/IMG_9409.webp",
-        alt="Vonlet officer in a blue suit standing beside a bank ATM",
-        note=ARCHIVE_NOTE,
+        image="assets/images/full/wa-16-site-post-suit.webp",
+        alt="Vonlet officer in a light-blue suit and tie standing discreetly at the barred entrance of a client building",
+        note=CLIENT_NOTE,
         source=f"{SITE}/service/secret-service/",
         dispatch="secret",
         dispatch_label="Undercover guards",
@@ -127,8 +127,8 @@ SERVICES = [
             "Queue and door management at peak hours",
             "Logged visits and incident reporting to the control room",
         ],
-        image="assets/images/full/wa-02-gatehouse-register.webp",
-        alt="Two Vonlet officers at a guard desk with occurrence books and a two-way radio",
+        image="assets/images/full/wa-11-bank-duty-suit.webp",
+        alt="Vonlet officer in a navy lounge suit and tie on post at a bank branch, beside the bank's glazed frontage",
         note=CLIENT_NOTE,
         source=None,
         dispatch="bank-atm",
@@ -196,8 +196,8 @@ SERVICES = [
             "Weighbridge and load-out checks",
             "K-9 support for veld, dam and store searches",
         ],
-        image="assets/images/full/wa-01-foot-patrol.webp",
-        alt="Vonlet officer walking a cleared sand boundary line between trees on a dry site",
+        image="assets/images/full/wa-15-veranda-relief.webp",
+        alt="Vonlet officer on a relief post under a canopied walkway, a bicycle parked beside him",
         note=CLIENT_NOTE,
         source=None,
         dispatch="farms-mines",
@@ -242,7 +242,7 @@ SERVICES = [
             "Crowd and bar-queue management",
             "After-event perimeter cover and sweep",
         ],
-        image="assets/images/full/wa-07-veranda-post.webp",
+        image="assets/images/full/wa-09-suit-team-entrance.webp",
         alt="Armed Vonlet officer seated along a building veranda with a colleague at a desk behind him",
         note=CLIENT_NOTE,
         source=None,
@@ -267,8 +267,8 @@ SERVICES = [
             "Cash, valuation and high-value consignment escort",
             "Officers briefed to confidentiality, vetted as in training",
         ],
-        image="assets/images/full/wa-06-armed-sentry.webp",
-        alt="Armed Vonlet officer seated at an entrance with a shotgun across his knees, hard hats and a crate beside him",
+        image="assets/images/full/wa-14-airport-arrivals.webp",
+        alt="Vonlet officer in a navy lounge suit meeting travellers in the International Arrivals hall",
         note=CLIENT_NOTE,
         source=None,
         dispatch="escorts",
@@ -629,14 +629,56 @@ def render_block(service: dict, position: int, total: int) -> str:
           </article>'''
 
 
+def render_overview() -> str:
+    """A thumbnail index of every line, so the catalogue opens on pictures.
+
+    The jump chips above handle navigation; this grid is the visual contents
+    page - one photograph, the group and the name per line, each linking to its
+    own block. It is generated from the same SERVICES list, so a line cannot be
+    in one and missing from the other.
+    """
+    cards = []
+    for index, service in enumerate(SERVICES, start=1):
+        image = service["image"]
+        thumb = image.replace("/full/", "/thumbs/") if "/full/" in image else image
+        meta = "SUPPLIED FOR THIS SITE" if not service.get("source") else "PUBLISHED SERVICE"
+        cards.append(
+            '            <li class="svc-index-card">\n'
+            f'              <a href="#{service["slug"]}">\n'
+            f'                <span class="svc-index-media"><img src="{thumb}" alt="{esc(service["alt"])}" loading="lazy" decoding="async"><span class="svc-index-number">{index:02d}</span></span>\n'
+            f'                <span class="svc-index-text"><span class="svc-index-group">{esc(service["group"].upper())}</span><strong>{service["name"]}</strong><span class="svc-index-note">{meta}</span></span>\n'
+            '              </a>\n'
+            '            </li>'
+        )
+    total = len(SERVICES)
+    return (
+        '        <div class="svc-index reveal">\n'
+        '          <div class="svc-index-head">\n'
+        '            <p class="eyebrow">THE CATALOGUE AT A GLANCE</p>\n'
+        '            <h2>Every line,<br>photographed.</h2>\n'
+        f'            <p>All {total} service lines in one grid. Select a photograph to open that line\'s full brief, its inclusions and its request button below.</p>\n'
+        '            <p class="svc-index-key"><span></span> Published on vonletsecurity.co.zw <span></span> Supplied for this site</p>\n'
+        '          </div>\n'
+        '          <ul class="svc-index-grid">\n'
+        + "\n".join(cards)
+        + '\n          </ul>\n'
+        '        </div>\n'
+    )
+
+
 def main() -> None:
     index = INDEX.read_text(encoding="utf-8")
     head_end = index.index("</head>") + len("</head>")
     head = index[:head_end]
 
-    head = head.replace(
-        "<title>Vonlet Security — Guarding, K-9 and Electronic Security in Zimbabwe &amp; Zambia</title>",
+    # The landing page title has changed more than once; match the <title> and
+    # the two social/SEO strings by pattern so this build never silently keeps
+    # the home-page metadata on the services page.
+    head = re.sub(
+        r"<title>.*?</title>",
         "<title>All Twenty-Three Service Lines — Guards, Bank &amp; ATM, Farms &amp; Mines, Escorts | Vonlet Security</title>",
+        head,
+        count=1,
     )
     head = re.sub(
         r'<meta name="description" content="[^"]*">',
@@ -644,9 +686,11 @@ def main() -> None:
         head,
         count=1,
     )
-    head = head.replace(
-        '<meta property="og:title" content="Vonlet Security — People. Technology. Response.">',
+    head = re.sub(
+        r'<meta property="og:title" content="[^"]*">',
         '<meta property="og:title" content="Vonlet Security — All Twenty-Three Service Lines">',
+        head,
+        count=1,
     )
     head = re.sub(
         r'<meta property="og:description" content="[^"]*">',
@@ -654,7 +698,12 @@ def main() -> None:
         head,
         count=1,
     )
-    head = head.replace('<link rel="preload" href="assets/images/full/IMG_9309.webp" as="image" fetchpriority="high">\n', "")
+    head = re.sub(
+        r'\s*<link rel="preload" href="assets/images/full/[^"]+" as="image" fetchpriority="high">',
+        "",
+        head,
+        count=1,
+    )
 
     body_open = index.index("<body>")
     main_open = index.index('<main id="main">') + len('<main id="main">')
@@ -713,6 +762,7 @@ def main() -> None:
     blocks = "\n".join(
         render_block(service, i, len(SERVICES)) for i, service in enumerate(SERVICES, start=1)
     )
+    overview = render_overview()
 
     main = f'''
     <section class="page-hero" aria-labelledby="services-page-title">
@@ -743,7 +793,7 @@ def main() -> None:
           <p class="service-jump-legend">{published} lines are published on vonletsecurity.co.zw and linked to their source page below; the {supplied} under SECTOR SECURITY and PROTECTION &amp; INVESTIGATION were given to us by the company for this site and are awaiting publication there.</p>
         </div>
         <h2 class="sr-only" id="catalogue-title">The {len(SERVICES)} Vonlet service lines</h2>
-{blocks}
+{overview}{blocks}
         <div class="service-close reveal">
           <div>
             <p class="eyebrow">NOT SURE WHICH YOU NEED?</p>

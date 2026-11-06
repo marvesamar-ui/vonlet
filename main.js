@@ -374,14 +374,68 @@
     showDispatchForm();
   }
 
-  function initServiceLinks() {
-    $$('[data-service-link]').forEach((button) => {
-      button.addEventListener("click", () => {
-        const service = button.dataset.serviceLink;
-        const heading = $("h3", button.closest(".service-row"));
-        const label = heading ? heading.textContent.trim() : "Security services";
-        selectService(service, label, `I'm interested in ${label}. Please advise on coverage options for my site.`);
-        navigateToSection("dispatch", "#contact-name");
+  /* ---------- Service showcase filters ----------
+     The landing page renders all twenty-three service cards statically so the
+     grid is complete without JavaScript. This only narrows what is on screen. */
+  function initServiceFilters() {
+    const grid = $("[data-svc-grid]");
+    const tabs = $$(".svc-tab");
+    if (!grid || !tabs.length) return;
+    // The closing tile is a route to the catalogue, not a service line: it is
+    // shown with "all" and hidden the moment a group is filtered.
+    const cards = $$(".svc-card", grid);
+    const cta = $(".svc-card--cta", grid);
+    const status = $("#svc-status");
+
+    // The lead card spans two columns; the bento only balances when it leads a
+    // filtered set, so a filter that matches a single card centres it instead.
+    const apply = (filter) => {
+      let shown = 0;
+      if (cta) cta.hidden = filter !== "all";
+      cards.forEach((card) => {
+        if (card === cta) return; // handled above
+        const match = filter === "all" || card.dataset.group === filter;
+        card.hidden = !match;
+        if (!match) return;
+        shown += 1;
+        if (!prefersReducedMotion() && typeof card.animate === "function" && shown <= 9) {
+          card.animate(
+            [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }],
+            { duration: 300, delay: shown * 30, easing: "cubic-bezier(.22,.61,.36,1)", fill: "backwards" }
+          );
+        }
+      });
+      grid.classList.toggle("is-filtered", filter !== "all");
+      grid.classList.toggle("is-single", shown === 1);
+      const total = cards.filter((card) => card !== cta).length;
+      if (status) {
+        status.textContent = filter === "all"
+          ? `Showing all ${total} service lines.`
+          : `Showing ${shown} service line${shown === 1 ? "" : "s"} in ${filter}.`;
+      }
+    };
+
+    const activate = (tab) => {
+      tabs.forEach((item) => {
+        const active = item === tab;
+        item.classList.toggle("is-active", active);
+        item.setAttribute("aria-pressed", String(active));
+        item.tabIndex = active ? 0 : -1;
+      });
+      apply(tab.dataset.svcFilter);
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.tabIndex = tab.classList.contains("is-active") ? 0 : -1;
+      tab.addEventListener("click", () => activate(tab));
+      // Roving arrow keys across the tab row, matching the filter tabs above.
+      tab.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        const next = tabs[(index + step + tabs.length) % tabs.length];
+        next.focus();
+        activate(next);
       });
     });
   }
@@ -771,7 +825,7 @@
     initEstimator();
     initContact();
     initInfoDialogs();
-    initServiceLinks();
+    initServiceFilters();
 
     const lightbox = createLightbox((item) => {
       const message = `I'm interested in ${item.title}. Please advise on options for my site.`;

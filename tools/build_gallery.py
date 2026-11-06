@@ -73,9 +73,27 @@ COLLECTIONS = {
     },
     "sites": {
         "label": "Site deployments",
-        "brief": "Recent frames the company sent us directly from a live deployment: a gatehouse register, quad-bike patrols of a razor-wire perimeter, armed posts along a site office and a foot patrol on a cleared boundary line. They illustrate the sector work - warehouse, farms and mines, residential, functions - described on the services page.",
-        "kit": "Quad bike|Occurrence book|Perimeter fence|Two-way radio",
+        "brief": "Recent frames the company sent us directly from a live deployment: a gatehouse register, quad-bike patrols of a razor-wire perimeter, armed posts along a site office, a foot patrol on a cleared boundary line and the branded Rapid Response pickup on the branch forecourt. They illustrate the guarding and sector work described on the services page.",
+        "kit": "Quad bike|Occurrence book|Perimeter fence|Two-way radio|Rapid response vehicle",
         "service": "integrated",
+    },
+    "posting": {
+        "label": "Banking & corporate posts",
+        "brief": "Officers on banking and corporate duty, photographed at the client's premises: the blue lounge suit and tie at the entrance, the light-blue shirt and tie on the banking-hall corner, and the same officer set against the seated 'for you' signage. Presentation is part of the service - a post that reads as professional before it reads as security.",
+        "kit": "Lounge suit and tie|Company badge|Entrance post|Banking hall|Occurrence book",
+        "service": "bank-atm",
+    },
+    "events": {
+        "label": "Airport & functions",
+        "brief": "Meet-and-greet and close-protection deployment away from a fixed post: an officer in the blue lounge suit standing in the International Arrivals hall, the kind of presence a client asks for when a visitor needs to be received, escorted and handed over rather than simply collected.",
+        "kit": "Arrivals hall|Meet and greet|Close protection|Client escort",
+        "service": "escorts",
+    },
+    "briefing": {
+        "label": "Briefing & uniforms",
+        "brief": "Deployment starts with a briefing. Officers in the reflective storm coat and the light-blue shirt stand in front of the company core-values and mission boards at head office - the uniform, the standard and the paperwork before a single post is handed over.",
+        "kit": "Reflective storm coat|Company badge|Core values board|Mission board|Shift briefing",
+        "service": "training",
     },
     "fleet": {
         "label": "Fleet & logistics",
@@ -165,6 +183,17 @@ PHOTOS = [
     ("wa-05-site-desk-pair", "sites", "Post at the site desk", "Two Vonlet officers at a desk outside a site building, one seated with a rifle across his knees"),
     ("wa-06-armed-sentry", "sites", "Armed sentry at the entrance", "Armed Vonlet officer seated at an entrance with a shotgun, hard hats and a kit crate beside him"),
     ("wa-07-veranda-post", "sites", "Veranda post and relief", "Armed Vonlet officer seated along a building veranda with a colleague at a desk behind him"),
+
+    # --- Batch 2: frames the client sent directly, Nov 2026 -----------------
+    ("wa-08-rapid-response-vehicle", "sites", "Rapid Response on the forecourt", "Branded white Vonlet Rapid Response pickup parked on a shopping-centre forecourt"),
+    ("wa-09-suit-team-entrance", "posting", "Three officers, suited and badged", "Three Vonlet officers in navy lounge suits and ties with company badges, standing at a building entrance"),
+    ("wa-10-bank-duty-shirt", "posting", "Banking-hall post, shirt and tie", "Vonlet officer in a light-blue shirt and dark tie standing on the ZB Financial Holdings corner"),
+    ("wa-11-bank-duty-suit", "posting", "Banking-hall post, lounge suit", "Vonlet officer in a navy lounge suit and tie standing beside the ZB 'for you' glazing"),
+    ("wa-12-depot-briefing", "briefing", "Shift briefing under the boards", "Vonlet officers in reflective storm coats standing in front of the company mission and core-values boards"),
+    ("wa-13-fidelity-room-duty", "posting", "Fidelity room duty", "Vonlet officer in a navy lounge suit standing at the entrance to a 'fidelity room'"),
+    ("wa-14-airport-arrivals", "events", "Meet and greet at arrivals", "Vonlet officer in a navy lounge suit standing in the International Arrivals hall"),
+    ("wa-15-veranda-relief", "sites", "Relief post on the veranda", "Vonlet officer in a navy suit standing at a veranda relief post beside a parked bicycle"),
+    ("wa-16-site-post-suit", "posting", "Post at the barred entrance", "Vonlet officer in a bright blue suit and tie standing at the barred entrance of a client building"),
 ]
 
 # Lead each collection with its strongest frame, then interleave collections so
@@ -175,14 +204,20 @@ COVER = {
     "operations": "IMG_9250",
     "people": "IMG_9363",
     "field": "IMG_9326",
-    "sites": "wa-04-quad-lawn",
+    "sites": "wa-08-rapid-response-vehicle",
+    "posting": "wa-11-bank-duty-suit",
+    "briefing": "wa-12-depot-briefing",
+    "events": "wa-14-airport-arrivals",
     "tech": "IMG_9399",
     "k9": "IMG_9294",
     "office": "IMG_9343",
     "fleet": "IMG_9336",
     "training": "IMG_9261",
 }
-ORDER = ["leadership", "tactical", "operations", "people", "field", "sites", "tech", "k9", "office", "fleet", "training"]
+ORDER = [
+    "leadership", "tactical", "operations", "people", "field", "sites",
+    "posting", "briefing", "events", "tech", "k9", "office", "fleet", "training",
+]
 
 # The landing page shows a curated set; the complete archive lives on archive.html.
 # Two of the frames the client sent directly are carried up here so the sector
@@ -191,18 +226,20 @@ ORDER = ["leadership", "tactical", "operations", "people", "field", "sites", "te
 FEATURED = [
     "IMG_9346",  # leadership
     "IMG_9299",  # tactical
+    "wa-09-suit-team-entrance",  # banking & corporate posts: suited team
     "IMG_9250",  # operations room
-    "IMG_9326",  # field team with the mobile office
-    "wa-04-quad-lawn",  # site deployments: quad patrol inside the fence
+    "wa-08-rapid-response-vehicle",  # site deployments: branded response pickup
     "IMG_9399",  # electronic security
+    "wa-11-bank-duty-suit",  # banking post
     "IMG_9294",  # K-9 handler
+    "wa-14-airport-arrivals",  # airport & functions
     "IMG_9343",  # reception & office
+    "wa-12-depot-briefing",  # briefing & uniforms
     "IMG_9336",  # fleet & logistics
-    "wa-02-gatehouse-register",  # site deployments: gatehouse register
+    "IMG_9326",  # field team with the mobile office
     "IMG_9274",  # strategy & training
-    "IMG_9280",  # people & teams
+    "wa-15-veranda-relief",  # relief post
     "IMG_9409",  # ATM duty officer
-    "IMG_9390",  # people & teams, staff kitchen
 ]
 
 

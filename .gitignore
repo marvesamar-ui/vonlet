@@ -6,3 +6,4 @@ Thumbs.db
 
 # Drive source downloads (processed into assets/images)
 google_drive/
+__pycache__/

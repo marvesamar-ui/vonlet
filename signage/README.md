@@ -4,20 +4,22 @@ Fifteen boards, drawn to scale in millimetres. Every file is a print-resolution
 PNG with a bleed, so a fabricator, printer or sign shop can take it straight
 into production. Sizes are finished sizes; the bleed is extra on each edge.
 
-Three things live here:
+Four things live here:
 
 | Folder | What it is |
 | --- | --- |
 | `*.png` | The flat artwork. This is what a fabricator prints. |
 | `plans/` | Technical elevations — dimensioned drawings with material, fixing and installation heights. |
 | `insitu/` | Photorealistic renders showing each board on a real wall, in perspective, in daylight. |
+| `premium/` | Ten illuminated designs, rendered lit at dusk — the specification for the signs that have to work after dark. |
 
-Build all three:
+Build all four:
 
 ```bash
-python3 tools/build_signage.py           # flat artwork
-python3 tools/build_signage_plans.py     # dimensioned elevations
-python3 tools/build_signage_3d.py        # in-situ renders
+python3 tools/build_signage.py             # flat artwork
+python3 tools/build_signage_plans.py       # dimensioned elevations
+python3 tools/build_signage_3d.py          # in-situ renders
+python3 tools/build_signage_lighting.py    # illuminated set + contact sheet
 ```
 
 ## The set
@@ -111,6 +113,62 @@ nothing in them competes with, or contradicts, the board that gets composited on
 top. The company's own photography could not be used for this: those frames
 already contain the existing wall boards, and a rendered sign would have had to
 be pasted over real signage.
+
+## Premium illuminated set — `signage/premium/`
+
+Ten designs for the signs that have to work after dark: the gate, the pylon, the
+entrance, the lobby. Every one is shown lit, at dusk, on the surface it is
+actually fixed to — because an illuminated sign is a lighting brief as much as
+an artwork, and a flat file cannot show a fabricator where the light comes from.
+
+| File | Sign | Size | Lighting | Where |
+| --- | --- | --- | --- | --- |
+| `01-channel-letters.png` | Fabricated channel letters | 2400 × 1200 mm | Face-lit acrylic letters on a halo-lit back tray | Lobby wall |
+| `02-acrylic-blade.png` | Framed acrylic blade | 1640 × 800 mm | Edge-lit acrylic in a black frame, bracket-mounted | Blade wall |
+| `03-halo-wall.png` | LED halo wall sign | 3800 × 1700 mm | Reverse-lit mark on a stand-off tray, 60 mm off the stone | Night wall |
+| `04-lightbox-totem.png` | Backlit fabric lightbox | 1200 × 2240 mm | Even panel illumination, dye-sublimation textile face | Gate approach |
+| `05-metal-plate.png` | Brushed stainless plate | 3000 × 1000 mm | Wall-washed by two surface downlights | Reception desk |
+| `06-neon-gate-totem.png` | LED neon-line totem | 900 × 1740 mm | Halo-lit lettering on a dark monolith | Gate pillar |
+| `07-illuminated-pylon.png` | Downlit pylon | 3000 × 2080 mm | Two spot heads on a top arm, raking the face | Site boundary |
+| `08-window-vinyl.png` | Frosted manifest film | 2600 × 1670 mm | Interior backlight through frosted vinyl | Glass frontage |
+| `09-canopy-letters.png` | Fascia letters | 4500 × 300 mm | Soffit-lit halo letters on a deep fascia | Entrance canopy |
+| `10-lit-a-frame.png` | Edge-lit A-frame | 700 × 1000 mm | Internally illuminated double-sided leaf | On the paving |
+
+`contact-sheet.png` is all ten on one page, captioned.
+
+### How the renders are made
+
+`tools/build_signage_lighting.py` draws the artwork in millimetres, then
+composites it into one of the blank scene plates with `tools/lighting.py` as the
+lighting rig. Two rules, both learned the hard way:
+
+- **The artwork's aspect matches its quad's.** Every board is built at the size
+  of the face it is mounted on, so no letter is ever squashed into a quad. The
+  quads were measured off each plate with a grid overlay, not estimated.
+- **Light is added, never painted.** Halos, rims, spill and wall-washes are
+  screened onto the scene, so they brighten what is behind them instead of
+  covering it with a grey rectangle.
+
+The rig is a set of small, physical pieces: `bloom` for the halo off a lit face,
+`pool`/`wash` for light landing on a surface, `backlit` for a panel that glows
+through its own print, and `*_layer` variants of the light functions so a cone
+thrown by a spot can be clipped to the sign it lands on rather than also lighting
+the sky. `dusk()` grades a daylight plate to night; `brushed_metal`,
+`acrylic_edge_glow` and `scuff` supply material. Light is never a flat fill: the
+halo falls off as `a / (1 + a)` so a bright face does not leave a hard-edged
+grey plateau behind it.
+
+```bash
+python3 tools/build_signage_lighting.py                    # all ten + contact sheet
+python3 tools/build_signage_lighting.py 04-lightbox-totem  # just one
+```
+
+Copy lives in the `sig_*` function for each design; the quads, lighting values
+and spill positions live in the matching `render_*` function directly below it.
+
+The ten scene plates in `assets/signage-scenes/` are the same deliberately-empty
+generated plates used by the in-situ set, adding a night wall, a pylon at dusk,
+an exterior wall with paving, a canopy, a glass frontage and a gate pillar.
 
 ## Specification
 

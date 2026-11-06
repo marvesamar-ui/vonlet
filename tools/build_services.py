@@ -599,6 +599,8 @@ def source_element(service: dict) -> str:
 def render_block(service: dict, position: int, total: int) -> str:
     paragraphs = "\n              ".join(f"<p>{p}</p>" for p in service["paragraphs"])
     points = "\n                ".join(f"<li>{p}</li>" for p in service["points"])
+    # The note sits in the text column now, not across the photograph; only its
+    # colour changes: generated art is flagged yellow, client frames less grey.
     if service["note"] == CONCEPT_NOTE:
         note_class = "service-media-note service-media-note--concept"
     elif service["note"] == CLIENT_NOTE:
@@ -608,10 +610,9 @@ def render_block(service: dict, position: int, total: int) -> str:
     return f'''          <article class="service-block" id="{service["slug"]}">
             <div class="service-block-media">
               <img src="{service["image"]}" alt="{esc(service["alt"])}" loading="lazy" decoding="async">
-              <span class="service-block-index">{position:02d} / {total:02d}</span>
-              <span class="{note_class}">{service["note"]}</span>
             </div>
             <div class="service-block-body">
+              <p class="service-block-meta"><span class="service-block-index">{position:02d} / {total:02d}</span><span class="{note_class}">{service["note"]}</span></p>
               <p class="eyebrow">{esc(service["group"].upper())}</p>
               <h2>{service["name"]}</h2>
               <p class="service-block-summary">{service["summary"]}</p>
@@ -650,8 +651,8 @@ def render_overview() -> str:
         cards.append(
             '            <li class="svc-index-card">\n'
             f'              <a href="#{service["slug"]}">\n'
-            f'                <span class="svc-index-media"><img src="{thumb}" alt="{esc(service["alt"])}" loading="lazy" decoding="async"><span class="svc-index-number">{index:02d}</span></span>\n'
-            f'                <span class="svc-index-text"><span class="svc-index-group">{esc(service["group"].upper())}</span><strong>{service["name"]}</strong><span class="svc-index-note">{meta}</span></span>\n'
+            f'                <span class="svc-index-media"><img src="{thumb}" alt="{esc(service["alt"])}" loading="lazy" decoding="async"></span>\n'
+            f'                <span class="svc-index-text"><span class="svc-index-group"><span class="svc-index-num">{index:02d}</span><span>{esc(service["group"].upper())}</span></span><strong>{service["name"]}</strong><span class="svc-index-note">{meta}</span></span>\n'
             '              </a>\n'
             '            </li>'
         )

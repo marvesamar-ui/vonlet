@@ -43,6 +43,13 @@ ARCHIVE_NOTE = "COMPANY ARCHIVE"
 CLIENT_NOTE = "ON SITE, NOVEMBER 2026"
 CONCEPT_NOTE = "ILLUSTRATIVE CONCEPT"
 
+# Nothing is stamped on the photographs. Group and provenance live in the card
+# body — the group as its eyebrow, the provenance in the meta line — so the
+# picture is left as the company's own frame, uncropped by furniture. The one
+# exception is the AI-generated concept art, whose disclosure is carried
+# explicitly rather than as a caption over the image.
+MEDIA_DISCLOSURE = "ILLUSTRATIVE — AI-GENERATED, NOT A COMPANY PHOTOGRAPH"
+
 # The catalogue's long provenance labels, shortened for a card meta line.
 PROVENANCE = {
     "FROM THE COMPANY ARCHIVE": ARCHIVE_NOTE,
@@ -151,11 +158,20 @@ def shape(service: dict) -> str:
     return "portrait" if int(width) / int(height) < 0.95 else "landscape"
 
 
-def concept_stamp(service: dict) -> str:
-    """Only the cash-in-transit art is generated: say so on the card itself."""
-    if service["note"] != "ILLUSTRATIVE CONCEPT IMAGE — NOT A COMPANY PHOTOGRAPH":
+def is_concept(service: dict) -> bool:
+    return service["note"] == "ILLUSTRATIVE CONCEPT IMAGE — NOT A COMPANY PHOTOGRAPH"
+
+
+def disclosure(service: dict) -> str:
+    """Only some of the art is generated: say so, but not over the picture.
+
+    A warning printed on a photograph reads as part of the photograph. So the
+    disclosure sits in the card body, after the copy, where it is read as a
+    statement about the image rather than a caption on it.
+    """
+    if not is_concept(service):
         return ""
-    return '<span class="svc-concept">ILLUSTRATIVE — NOT A COMPANY PHOTOGRAPH</span>'
+    return f'\n              <p class="svc-card-disclosure">{MEDIA_DISCLOSURE}</p>'
 
 
 def lead_card(service: dict) -> str:
@@ -163,14 +179,13 @@ def lead_card(service: dict) -> str:
     return f'''          <article class="svc-card svc-card--lead reveal" data-group="{esc(service["group"])}" data-shape="{shape(service)}">
             <a class="svc-card-media" href="services.html#{service["slug"]}">
               {picture(service, "(min-width: 1080px) 58vw, 92vw", "eager", True)}
-              <span class="svc-badge"><span class="svc-badge-dot"></span>{esc(service["group"].upper())}</span>{concept_stamp(service)}
-              <span class="svc-open"><svg class="icon" aria-hidden="true"><use href="#i-up-right"/></svg></span>
             </a>
             <div class="svc-card-body">
+              <p class="svc-card-group">{esc(service["group"].upper())}</p>
               <p class="svc-card-meta"><span>01</span> THE LINE EVERY OTHER LINE RESTS ON · {PROVENANCE.get(service["note"], ARCHIVE_NOTE)}</p>
               <h3><a href="services.html#{service["slug"]}">{esc(service["name"])}</a></h3>
               <p class="svc-card-copy">{esc(service["summary"])}</p>
-              <ul class="svc-points">{points}</ul>
+              <ul class="svc-points">{points}</ul>{disclosure(service)}
               <div class="svc-card-actions">
                 <a class="button button--red" href="{request_href(service)}">Request a survey <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
                 <a class="text-button" href="services.html#{service["slug"]}">Read the full line <svg class="icon" aria-hidden="true"><use href="#i-up-right"/></svg></a>
@@ -183,13 +198,12 @@ def card(service: dict, number: int) -> str:
     return f'''          <article class="svc-card reveal" data-group="{esc(service["group"])}" data-shape="{shape(service)}">
             <a class="svc-card-media" href="services.html#{service["slug"]}">
               {picture(service, "(min-width: 1080px) 30vw, (min-width: 720px) 46vw, 92vw")}
-              <span class="svc-badge"><span class="svc-badge-dot"></span>{esc(service["group"].upper())}</span>{concept_stamp(service)}
-              <span class="svc-open"><svg class="icon" aria-hidden="true"><use href="#i-up-right"/></svg></span>
             </a>
             <div class="svc-card-body">
+              <p class="svc-card-group">{esc(service["group"].upper())}</p>
               <p class="svc-card-meta"><span>{number:02d}</span> {PROVENANCE.get(service["note"], ARCHIVE_NOTE)}</p>
               <h3><a href="services.html#{service["slug"]}">{esc(service["name"])}</a></h3>
-              <p class="svc-card-copy">{esc(service["summary"])}</p>
+              <p class="svc-card-copy">{esc(service["summary"])}</p>{disclosure(service)}
               <div class="svc-card-actions">
                 <a class="svc-card-request" href="{request_href(service)}">Request <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
               </div>
@@ -248,7 +262,7 @@ def main() -> None:
             <button class="svc-tab is-active" type="button" data-svc-filter="all" aria-pressed="true">All services <span>{len(SERVICES):02d}</span></button>
 {tabs}
           </div>
-          <p class="svc-toolbar-note"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg> Every photograph is from the company archive or supplied by the company for this site.</p>
+          <p class="svc-toolbar-note"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg> Photographs are company frames or supplied by the company for this site. Three lines use AI-generated concept art and say so.</p>
         </div>
         <p class="sr-only" id="svc-status" role="status" aria-live="polite">Showing all {len(SERVICES)} service lines.</p>
 

@@ -586,7 +586,8 @@ def main() -> None:
         print(f"  {slug:<28} {rendered[-1][2]:>5} x {rendered[-1][3]:>4} mm"
               f"   {target.stat().st_size // 1024:>5} KB")
 
-    if not rendered:
+    # A partial run must not overwrite the full contact sheet with its own subset.
+    if not rendered or args.only:
         return
 
     # The boards are metres wide at print resolution; shrink each to a proof tile

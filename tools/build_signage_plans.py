@@ -18,8 +18,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import layout  # noqa: E402
 from layout import (  # noqa: E402
-    INK, LINE, LINE_STRONG, NAVY, NAVY_800, NAVY_850, NAVY_900, RED,
-    SLATE_300, SLATE_400, SLATE_500, WHITE, YELLOW, Page, text_width,
+    INK, LINE_STRONG, NAVY, NAVY_850, RED, SLATE_300, SLATE_400, SLATE_500,
+    YELLOW, Page, text_width,
 )
 
 OUT = ROOT / "signage" / "plans"

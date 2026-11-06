@@ -13,7 +13,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -21,10 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import layout  # noqa: E402
 import insitu  # noqa: E402
-from layout import (  # noqa: E402
-    INK, LINE, LINE_STRONG, NAVY, NAVY_800, NAVY_850, NAVY_900, RED, SLATE_300,
-    SLATE_400, SLATE_500, WHITE, YELLOW, Page, text_width,
-)
+from layout import INK, NAVY, RED, SLATE_400, SLATE_500, YELLOW, Page, text_width  # noqa: E402
 
 OUT = ROOT / "signage" / "insitu"
 SCENES = ROOT / "assets" / "signage-scenes"
@@ -204,7 +200,7 @@ def build_jobs():
         inset=(0.0, 0.0, 1.0, 1.0), scale=0.42,
         depth=11, depth_angle=8, light=0.30, shadow=(16, 10), shadow_blur=13,
         shadow_opacity=0.62, texture=0.04, scuff=0.14,
-        top="#d8d2c6", side="#8d8madd".replace("madd", "87a"),
+        top="#d8d2c6", side="#8d887a",
         note="700 x 1000 mm A-frame, double-sided")
 
 
@@ -227,7 +223,35 @@ def render_all():
         print(f"  {j['name']:<26} {j['note']}")
 
 
+def contact_sheet():
+    """The nine renders on one page, captioned, as signage/insitu-sheet.png."""
+    from PIL import ImageFont
+    import layout
+
+    W = 1488
+    cols, rows = 3, 3
+    gut, cap_h, top, foot = 14, 46, 14, 14
+    cell_w = (W - 2 * 14 - gut * (cols - 1)) // cols
+    cell_h = round(cell_w * 768 / 1408)
+    H = top + rows * (cell_h + cap_h) + (rows - 1) * gut + foot
+
+    sheet = Image.new("RGB", (W, H), (3, 8, 22))
+    d = ImageDraw.Draw(sheet)
+    cap = ImageFont.truetype(str(layout.FONT_FILES["semi"]), 19)
+
+    for i, j in enumerate(JOBS):
+        cx = 14 + (i % cols) * (cell_w + gut)
+        cy = top + (i // cols) * (cell_h + cap_h + gut)
+        shot = Image.open(OUT / f"{j['name']}.jpg").convert("RGB")
+        sheet.paste(shot.resize((cell_w, cell_h), Image.LANCZOS), (cx, cy))
+        d.text((cx, cy + cell_h + 15), j["note"], font=cap, fill=(150, 160, 175))
+
+    return sheet
+
+
 if __name__ == "__main__":
     build_jobs()
     render_all()
-    print(f"  {len(JOBS)} scene renders")
+    sheet = contact_sheet()
+    sheet.save(OUT.parent / "insitu-sheet.png", optimize=True)
+    print(f"  {len(JOBS)} scene renders + contact sheet")

@@ -45,8 +45,14 @@ STRAP = "PROTECTION. WITHOUT COMPROMISE."
 # ---------------------------------------------------------------------------
 # shared furniture
 # ---------------------------------------------------------------------------
-def brand(page: Page, y: float, color=INK, mark=True, size=4.2) -> None:
-    """Shield + wordmark, top-left of the text area."""
+def brand(page: Page, y: float, color=None, mark=True, size=4.2) -> None:
+    """Shield + wordmark, top-left of the text area.
+
+    `color` defaults to the palette's ink, resolved at call time: a default of
+    `INK` would bind the dark edition's off-white when this module is imported
+    and keep it, invisibly, through a light build.
+    """
+    color = INK if color is None else color
     x = M
     if mark:
         page._add("image", dict(x=x, y=y - size * 1.05, w=size * 1.1, h=size * 1.1,
@@ -75,9 +81,10 @@ def folio_line(page: Page, number: int) -> None:
     page.text(l, base, f"{number:02d}", "cond-bold", 3.6, YELLOW, align="right", width=r - l)
 
 
-def caption(page: Page, x, y, value, width=None, color=SLATE_500, size=2.35,
+def caption(page: Page, x, y, value, width=None, color=None, size=2.35,
             tick=True) -> float:
-    """Small caption under a photograph, with a yellow tick on the first line."""
+    """Small caption under a photograph, with a tick on the first line."""
+    color = SLATE_500 if color is None else color
     text_x = x
     if tick:
         page.rect(x, y - size * 0.74, 3.0, 0.26, fill=YELLOW)
@@ -97,3 +104,91 @@ def photo(page: Page, x, y, w, h, name, focus=(0.5, 0.5), scrim=False, border=Tr
 def stat(page: Page, x, y, value, label, width=30, value_size=11) -> None:
     page.text(x, y, value, "cond-bold", value_size, YELLOW)
     page.kicker(x, y + 4.4, label, SLATE_500, 1.95, 0.22)
+
+
+# ---------------------------------------------------------------------------
+# palettes
+# ---------------------------------------------------------------------------
+# The issue is typeset once and can be bound to more than one palette. Some
+# pages are photographic and would be identical in either theme (the cover and
+# back cover are images under a scrim); the rest are type on the page field.
+#
+# The rules a light palette has to obey are not simply inverted:
+#   * the page field is paper, so "white" type is unusable — text anchors on a
+#     near-black ink instead;
+#   * the site's #facc15 fails against white at every weight and size, so the
+#     accent is darkened to a mustard that still reads as the same hue family;
+#   * section tints become a light warm grey rather than a lifted navy, because
+#     a navy tint on white reads as a printing error;
+#   * scrims stay dark. A scrim exists to put light type on a photograph, and a
+#     paper-coloured scrim over a photograph is a wash, not a scrim.
+THEMES: dict[str, dict[str, str]] = {
+    "dark": {},  # the module defaults, below
+    "light": {
+        "INK": "#0b0f16",          # near-black type on paper
+        "PAPER": "#ffffff",
+        "NAVY": "#ffffff",         # page field
+        "NAVY_900": "#f4f5f7",     # tint panels
+        "NAVY_850": "#f4f5f7",     # callout bands
+        "NAVY_800": "#e9ebef",
+        "LINE": "#dfe3e8",
+        "LINE_STRONG": "#b9c0c9",
+        "SLATE_300": "#2b3440",    # body copy
+        "SLATE_400": "#46505e",
+        "SLATE_500": "#6b7280",
+        "YELLOW": "#a16207",       # mustard: the brand hue, darkened to read
+        "WHITE": "#ffffff",
+        "RED": "#c81a1a",
+        "RED_DEEP": "#9e1414",
+        "SCRIM": "255,255,255",    # unused on paper; kept for symmetry
+        "SHADOW": "rgba(11,15,22,",
+    },
+}
+
+# Names rebound for a light build. NAVY* are the page field and its tints, so a
+# theme swap has to move them together with the type colours.
+_PALETTE_NAMES = (
+    "INK", "NAVY", "NAVY_800", "NAVY_850", "NAVY_900", "LINE", "LINE_STRONG",
+    "SLATE_300", "SLATE_400", "SLATE_500", "RED", "RED_DEEP", "YELLOW", "WHITE",
+)
+
+
+def apply_theme(theme: str) -> None:
+    """Rebind the palette names in this module and in build_magazine.
+
+    Done by rebinding module globals rather than by threading a palette object
+    through ten page functions: the page layouts already read these names, and
+    a build is a single-theme run from start to finish, so there is no point at
+    which two palettes need to coexist inside one page.
+    """
+    if theme not in THEMES:
+        raise SystemExit(f"unknown theme: {theme} (choose from {', '.join(THEMES)})")
+    values = THEMES[theme]
+
+    # `python3 tools/build_magazine.py` runs the builder as __main__, so a plain
+    # `import build_magazine` would load a second copy and rebind that one while
+    # the copy actually drawing the pages stayed dark.
+    import build_magazine
+
+    # Every loaded module that declares itself themed. Running the builder as a
+    # script puts the palette in `__main__`, so importing it again by name would
+    # rebind an unused copy while the pages kept the original colours.
+    targets, seen = [], set()
+    for module in [build_magazine, *list(sys.modules.values())]:
+        if module is None or not getattr(module, "_THEMED", False):
+            continue
+        if id(module) in seen:
+            continue
+        seen.add(id(module))
+        targets.append(module)
+
+    for name in _PALETTE_NAMES:
+        value = values.get(name)
+        if value is None:
+            continue
+        globals()[name] = value
+        for target in targets:
+            setattr(target, name, value)
+
+    for target in targets:
+        setattr(target, "THEME", theme)

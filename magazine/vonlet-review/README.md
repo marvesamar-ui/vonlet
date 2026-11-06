@@ -3,7 +3,17 @@
 Issue 01 · November 2026 · ten A4 pages, built entirely from the material already
 on vonletsecurity.co.zw and in this repository's image archive.
 
+**Two editions.** The issue is typeset once and bound to one of two palettes, so
+the same copy and the same photographs can be compared page for page:
+
+| Edition | Folder | Field | Accent |
+| --- | --- | --- | --- |
+| Dark (default) | `magazine/vonlet-review/` | navy `#030816` | safety yellow `#facc15` |
+| Light | `magazine/vonlet-review-light/` | white | mustard `#a16207` |
+
 ## Files
+
+Both folders hold the same twelve files:
 
 | File | What it is |
 | --- | --- |
@@ -52,8 +62,13 @@ Pages are **210 × 297 mm with 3 mm bleed** on every edge, so the PNGs measure
 ## Rebuilding
 
 ```bash
-python3 tools/build_magazine.py
+python3 tools/build_magazine.py                  # the dark edition
+python3 tools/build_magazine.py --theme light    # the light edition
 ```
+
+The two editions do not overwrite each other: each theme writes to its own
+folder, so rebuilding one leaves the other exactly as it was. The dark build is
+pixel-identical to the issue as it stood before the theme split.
 
 The build is self-contained. On first run `tools/layout.py` expands the site's
 Barlow `woff2` files in `assets/fonts` to TTF and installs them into `~/.fonts`
@@ -68,6 +83,26 @@ the PDF coder for writing:
   <policy domain="coder" rights="read|write" pattern="PDF" />
 </policymap>
 ```
+
+## What changes between the editions
+
+Not a filter. The palette is swapped, and four rules follow from it:
+
+- **Type anchors on the ink.** The dark edition's "white" is a near-white
+  `#f8fafc`; on paper that is invisible, so light pages set type in `#0b0f16`.
+- **The accent darkens.** `#facc15` fails against white at every size and weight,
+  so the light edition uses `#a16207` — the same hue family, at a value that
+  reads on paper.
+- **Section tints become warm grey.** A lifted navy on a white page reads as a
+  misprint, so callout bands sit on `#f4f5f7`.
+- **Scrims stay dark.** A scrim exists to put light type on a photograph, not to
+  match the page. The cover, the back cover, and the two panels set over the
+  patrol and fleet photographs are dark in both editions, and the type on them
+  stays light in both. `ON_DARK` in `tools/build_magazine.py` marks those
+  surfaces: it is the one place the palette must not follow the theme.
+
+The provenance band on page 8 keeps a tinted ground in both editions — deep
+amber on navy, pale amber on white — because it is a warning, not decoration.
 
 ## How the typesetting works
 

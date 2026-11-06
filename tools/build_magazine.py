@@ -37,7 +37,7 @@ BY_SLUG = {s["slug"]: s for s in SERVICES}
 def cover() -> Page:
     p = Page(margin=(M, M, M, M))
     # full-bleed hero
-    p.image(0, 0, W, H, ROOT / "assets/images/full/IMG_9309.webp", focus=(0.62, 0.42))
+    p.image(0, 0, W, H, ROOT / "assets/images/master/full/IMG_9309.webp", focus=(0.62, 0.42))
     # legibility: a graduated head band for the lockup, a deep foot for the type
     p.grad(0, 0, W, 58, "rgba(3,8,22,0.86)-rgba(3,8,22,0.0)")
     p.grad(0, 156, W, 141, "rgba(3,8,22,0.0)-rgba(3,8,22,0.96)")
@@ -182,7 +182,7 @@ def who_we_are() -> Page:
 
     # CEO feature strip — the photo holds the left half, the note sits beside it
     p.rule(M, 236, W - 2 * M, 0.25, LINE)
-    p.image(M, 242, 74, 46, ROOT / "assets/images/full/IMG_9346.webp", focus=(0.45, 0.42))
+    p.image(M, 242, 74, 46, ROOT / "assets/images/master/full/IMG_9346.webp", focus=(0.45, 0.42))
     tx = M + 82
     tw = W - M - tx
     p.kicker(tx, 249, "AT HEAD OFFICE", YELLOW, 2.1, 0.28)
@@ -266,7 +266,7 @@ def catalogue() -> Page:
 def banking_feature() -> Page:
     p = Page(margin=(M, M, M, M))
     # top image band
-    p.image(0, 0, W, 118, ROOT / "assets/images/full/wa-11-bank-duty-suit.webp",
+    p.image(0, 0, W, 118, ROOT / "assets/images/master/full/wa-11-bank-duty-suit.webp",
             focus=(0.55, 0.3))
     p.grad(0, 0, W, 84, "rgba(3,8,22,0.55)-rgba(3,8,22,0.0)")
     p.grad(0, 0, 118, 84, "rgba(3,8,22,0.80)-rgba(3,8,22,0.0)", angle=90)
@@ -286,7 +286,7 @@ def banking_feature() -> Page:
     fw = (W - 2 * M - 12) / 3
     for i, (name, label, focus) in enumerate(frames):
         fx = M + i * (fw + 6)
-        p.image(fx, 128, fw, 52, ROOT / f"assets/images/full/{name}.webp",
+        p.image(fx, 128, fw, 52, ROOT / f"assets/images/master/full/{name}.webp",
                 focus=(0.5, focus))
         p.text(fx, 184, label, "body", 2.25, SLATE_500)
 
@@ -359,12 +359,12 @@ def ground_feature() -> Page:
     ]
     x = M
     for name, label, focus in frames:
-        p.image(x, 96, 58, 62, ROOT / f"assets/images/full/{name}.webp", focus=focus)
+        p.image(x, 96, 58, 62, ROOT / f"assets/images/master/full/{name}.webp", focus=focus)
         p.paragraph(x, 163, 58, label, "body", 2.3, 1.4, SLATE_500)
         x += 61.5
 
     # full-width patrol frame
-    p.image(M, 176, W - 2 * M, 62, ROOT / "assets/images/full/wa-01-foot-patrol.webp",
+    p.image(M, 176, W - 2 * M, 62, ROOT / "assets/images/master/full/wa-01-foot-patrol.webp",
             focus=(0.5, 0.4))
     p.scrim_panel(M, 216, W - 2 * M, 22, NAVY, 0.8)
     p.kicker(M + 6, 224, "CLEARED BOUNDARY, WALKED", YELLOW, 2.0, 0.28)
@@ -398,7 +398,7 @@ def fleet_feature() -> Page:
     p.text(M, 58.5, "to the detail.", "cond-bold", 13, YELLOW)
 
     # hero: rapid response vehicle
-    p.image(M, 68, W - 2 * M, 74, ROOT / "assets/images/full/wa-08-rapid-response-vehicle.webp",
+    p.image(M, 68, W - 2 * M, 74, ROOT / "assets/images/master/full/wa-08-rapid-response-vehicle.webp",
             focus=(0.5, 0.5))
     p.scrim_panel(M, 122, W - 2 * M, 20, NAVY, 0.78)
     p.kicker(M + 6, 130, "BRANDED RESPONSE FLEET", YELLOW, 2.0, 0.28)
@@ -413,7 +413,7 @@ def fleet_feature() -> Page:
     ]
     x = M
     for i, (name, title, body) in enumerate(cards):
-        p.image(x, 152, 41, 30, ROOT / f"assets/images/full/{name}.webp", focus=(0.5, 0.4))
+        p.image(x, 152, 41, 30, ROOT / f"assets/images/master/full/{name}.webp", focus=(0.5, 0.4))
         p.text(x, 188, title, "cond-semi", 3.4, INK)
         p.paragraph(x, 194, 41, body, "body", 2.3, 1.42, SLATE_500)
         x += 43.5
@@ -547,9 +547,9 @@ def training_feature() -> Page:
         x += 45
 
     # training frames
-    p.image(M, 118, 58, 42, ROOT / "assets/images/full/IMG_9274.webp", focus=(0.5, 0.4))
-    p.image(M + 61.5, 118, 58, 42, ROOT / "assets/images/full/IMG_9313.webp", focus=(0.5, 0.45))
-    p.image(M + 123, 118, 58, 42, ROOT / "assets/images/full/IMG_9294.webp", focus=(0.5, 0.4))
+    p.image(M, 118, 58, 42, ROOT / "assets/images/master/full/IMG_9274.webp", focus=(0.5, 0.4))
+    p.image(M + 61.5, 118, 58, 42, ROOT / "assets/images/master/full/IMG_9313.webp", focus=(0.5, 0.45))
+    p.image(M + 123, 118, 58, 42, ROOT / "assets/images/master/full/IMG_9294.webp", focus=(0.5, 0.4))
     p.text(M, 164, "Strategy and planning, control-and-restraint drill, and the K-9 handler.",
            "body", 2.3, SLATE_500)
 
@@ -593,7 +593,7 @@ def training_feature() -> Page:
 # ---------------------------------------------------------------------------
 def back_cover() -> Page:
     p = Page(margin=(M, M, M, M))
-    p.image(0, 0, W, 200, ROOT / "assets/images/full/wa-09-suit-team-entrance.webp",
+    p.image(0, 0, W, 200, ROOT / "assets/images/master/full/wa-09-suit-team-entrance.webp",
             focus=(0.5, 0.26))
     p.grad(0, 0, W, 58, "rgba(3,8,22,0.84)-rgba(3,8,22,0.0)")
     # the picture darkens into the paper's navy, then ends on a hard yellow rule
@@ -634,8 +634,26 @@ def back_cover() -> Page:
     return p
 
 
+def ensure_pdf_policy() -> None:
+    """Allow ImageMagick to write PDFs for this user.
+
+    The distro policy denies the PDF coder outright. A per-user policy file
+    overrides it; this keeps the build working in a fresh sandbox.
+    """
+    policy = Path.home() / ".config" / "ImageMagick" / "policy.xml"
+    if policy.exists():
+        return
+    policy.parent.mkdir(parents=True, exist_ok=True)
+    policy.write_text(
+        "<policymap>\n"
+        '  <policy domain="coder" rights="read|write" pattern="PDF" />\n'
+        "</policymap>\n"
+    )
+
+
 # ---------------------------------------------------------------------------
 def main() -> None:
+    ensure_pdf_policy()
     OUT.mkdir(parents=True, exist_ok=True)
     pages = [
         ("01-cover", cover()),

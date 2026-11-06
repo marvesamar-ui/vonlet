@@ -95,6 +95,18 @@ DPI = 300
 MM = DPI / 25.4  # pixels per millimetre at print resolution
 
 
+def set_dpi(dpi: int) -> None:
+    """Re-scale the layout grid.
+
+    Signage is specified in millimetres but drawn at whatever resolution suits
+    the board: a 6-metre pylon panel gains nothing from 300 dpi, and the canvas
+    would be 70,000 px wide. Call this before laying anything out.
+    """
+    global DPI, MM
+    DPI = dpi
+    MM = DPI / 25.4
+
+
 def mm(value: float) -> int:
     return round(value * MM)
 

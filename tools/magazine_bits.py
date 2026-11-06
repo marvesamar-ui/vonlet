@@ -28,7 +28,10 @@ from build_services import GROUPS_IN_ORDER, SERVICES  # noqa: E402
 
 OUT = ROOT / "magazine" / "vonlet-review"
 IMG = ROOT / "assets" / "images"
-FULL = IMG / "full"
+# Untouched master files. The site's own `full/`, `cards/`, `cit/` and `concept/`
+# folders carry the on-page watermark; the magazine is printed from these
+# clean copies so no watermark is baked into the press artwork.
+FULL = IMG / "master" / "full"
 CARDS = IMG / "cards"
 LOGO = ROOT / "assets" / "brand" / "logo-mark-transparent.png"
 

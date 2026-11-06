@@ -39,6 +39,17 @@ INDEX = ROOT / "index.html"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_services import GROUPS_IN_ORDER, SERVICES  # noqa: E402
 
+ARCHIVE_NOTE = "COMPANY ARCHIVE"
+CLIENT_NOTE = "ON SITE, NOVEMBER 2026"
+CONCEPT_NOTE = "ILLUSTRATIVE CONCEPT"
+
+# The catalogue's long provenance labels, shortened for a card meta line.
+PROVENANCE = {
+    "FROM THE COMPANY ARCHIVE": ARCHIVE_NOTE,
+    "SUPPLIED BY THE CLIENT — SITE FRAME, NOVEMBER 2026": CLIENT_NOTE,
+    "ILLUSTRATIVE CONCEPT IMAGE — NOT A COMPANY PHOTOGRAPH": CONCEPT_NOTE,
+}
+
 # The card the eye lands on first: the line the company leads with everywhere
 # else, and the widest, most legible photograph in the catalogue.
 LEAD = "armed-guards"
@@ -108,14 +119,17 @@ def request_href(service: dict) -> str:
 
 
 def picture(service: dict, sizes: str, loading: str = "lazy", priority: bool = False) -> str:
-    image = service["image"]
-    thumb = image.replace("/full/", "/thumbs/") if "/full/" in image else image
+    """The 16:10 card derivative written by tools/build_card_crops.py.
+
+    Card crops exist because `object-fit: cover` cannot be trusted with the
+    company's 3:4 phone portraits: a wide box centre-cropped a standing officer
+    at the chest. Each crop is composed once, at the aspect the card uses.
+    """
+    card = ROOT / "assets/images/cards" / f"{service['slug']}.webp"
+    src = f"assets/images/cards/{service['slug']}.webp" if card.exists() else service["image"]
     fetch = ' fetchpriority="high"' if priority else ""
-    srcset = ""
-    if thumb != image:
-        srcset = f' srcset="{thumb} 640w, {image} 1600w"'
     return (
-        f'<img src="{thumb}"{srcset} sizes="{sizes}" alt="{esc(service["alt"])}" '
+        f'<img src="{src}" sizes="{sizes}" alt="{esc(service["alt"])}" '
         f'loading="{loading}"{fetch} decoding="async">'
     )
 
@@ -137,16 +151,23 @@ def shape(service: dict) -> str:
     return "portrait" if int(width) / int(height) < 0.95 else "landscape"
 
 
+def concept_stamp(service: dict) -> str:
+    """Only the cash-in-transit art is generated: say so on the card itself."""
+    if service["note"] != "ILLUSTRATIVE CONCEPT IMAGE — NOT A COMPANY PHOTOGRAPH":
+        return ""
+    return '<span class="svc-concept">ILLUSTRATIVE — NOT A COMPANY PHOTOGRAPH</span>'
+
+
 def lead_card(service: dict) -> str:
     points = "".join(f"<li>{esc(point)}</li>" for point in service["points"][:3])
     return f'''          <article class="svc-card svc-card--lead reveal" data-group="{esc(service["group"])}" data-shape="{shape(service)}">
             <a class="svc-card-media" href="services.html#{service["slug"]}">
               {picture(service, "(min-width: 1080px) 58vw, 92vw", "eager", True)}
-              <span class="svc-badge"><span class="svc-badge-dot"></span>{esc(service["group"].upper())}</span>
+              <span class="svc-badge"><span class="svc-badge-dot"></span>{esc(service["group"].upper())}</span>{concept_stamp(service)}
               <span class="svc-open"><svg class="icon" aria-hidden="true"><use href="#i-up-right"/></svg></span>
             </a>
             <div class="svc-card-body">
-              <p class="svc-card-meta"><span>01</span> THE LINE EVERY OTHER LINE RESTS ON</p>
+              <p class="svc-card-meta"><span>01</span> THE LINE EVERY OTHER LINE RESTS ON · {PROVENANCE.get(service["note"], ARCHIVE_NOTE)}</p>
               <h3><a href="services.html#{service["slug"]}">{esc(service["name"])}</a></h3>
               <p class="svc-card-copy">{esc(service["summary"])}</p>
               <ul class="svc-points">{points}</ul>
@@ -162,11 +183,11 @@ def card(service: dict, number: int) -> str:
     return f'''          <article class="svc-card reveal" data-group="{esc(service["group"])}" data-shape="{shape(service)}">
             <a class="svc-card-media" href="services.html#{service["slug"]}">
               {picture(service, "(min-width: 1080px) 30vw, (min-width: 720px) 46vw, 92vw")}
-              <span class="svc-badge"><span class="svc-badge-dot"></span>{esc(service["group"].upper())}</span>
+              <span class="svc-badge"><span class="svc-badge-dot"></span>{esc(service["group"].upper())}</span>{concept_stamp(service)}
               <span class="svc-open"><svg class="icon" aria-hidden="true"><use href="#i-up-right"/></svg></span>
             </a>
             <div class="svc-card-body">
-              <p class="svc-card-meta"><span>{number:02d}</span> {esc(service["group"].upper())}</p>
+              <p class="svc-card-meta"><span>{number:02d}</span> {PROVENANCE.get(service["note"], ARCHIVE_NOTE)}</p>
               <h3><a href="services.html#{service["slug"]}">{esc(service["name"])}</a></h3>
               <p class="svc-card-copy">{esc(service["summary"])}</p>
               <div class="svc-card-actions">

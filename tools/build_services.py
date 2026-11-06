@@ -173,8 +173,8 @@ SERVICES = [
             "Delivery and collection hours covered",
             "After-hours perimeter, parking and alarm response",
         ],
-        image="assets/images/full/wa-05-site-desk-pair.webp",
-        alt="Two Vonlet officers at a desk outside a site building, one seated with a rifle across his knees",
+        image="assets/images/full/wa-12-depot-briefing.webp",
+        alt="Vonlet officers in reflective storm coats on post inside a client premises",
         note=CLIENT_NOTE,
         source=None,
         dispatch="retail",
@@ -196,8 +196,8 @@ SERVICES = [
             "Weighbridge and load-out checks",
             "K-9 support for veld, dam and store searches",
         ],
-        image="assets/images/full/wa-15-veranda-relief.webp",
-        alt="Vonlet officer on a relief post under a canopied walkway, a bicycle parked beside him",
+        image="assets/images/full/wa-01-foot-patrol.webp",
+        alt="Vonlet officer walking a cleared sand boundary line between trees on a dry site",
         note=CLIENT_NOTE,
         source=None,
         dispatch="farms-mines",
@@ -421,9 +421,9 @@ SERVICES = [
             "Reaction team triggered automatically",
             "Site inspection on arrival",
         ],
-        image="assets/images/full/IMG_9299.webp",
-        alt="Two Vonlet officers in body armour beside a branded response vehicle",
-        note=ARCHIVE_NOTE,
+        image="assets/images/full/wa-08-rapid-response-vehicle.webp",
+        alt="Vonlet's branded Rapid Response pickup on a shopping-centre forecourt",
+        note=CLIENT_NOTE,
         source=f"{SITE}/service/rapid-response-systems/",
         dispatch="response",
         dispatch_label="Rapid response systems",
@@ -531,8 +531,8 @@ SERVICES = [
             "Licensing card for carriage on duty",
             "Multi-point background check",
         ],
-        image="assets/images/full/IMG_9309.webp",
-        alt="Vonlet supervisor with two officers in body armour beside a pickup",
+        image="assets/images/full/IMG_9299.webp",
+        alt="Two Vonlet officers in body armour and helmets beside a branded response vehicle",
         note=ARCHIVE_NOTE,
         source=f"{SITE}/service/firearm-handling/",
         dispatch="armed",
@@ -640,7 +640,12 @@ def render_overview() -> str:
     cards = []
     for index, service in enumerate(SERVICES, start=1):
         image = service["image"]
-        thumb = image.replace("/full/", "/thumbs/") if "/full/" in image else image
+        card = ROOT / "assets/images/cards" / f"{service['slug']}.webp"
+        thumb = (
+            f"assets/images/cards/{service['slug']}.webp"
+            if card.exists()
+            else image.replace("/full/", "/thumbs/") if "/full/" in image else image
+        )
         meta = "SUPPLIED FOR THIS SITE" if not service.get("source") else "PUBLISHED SERVICE"
         cards.append(
             '            <li class="svc-index-card">\n'

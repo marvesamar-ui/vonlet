@@ -41,7 +41,7 @@ from build_services import SERVICES  # noqa: E402
 # The boundary-patrol frame is a wide site shot with the officer in the middle
 # distance; at full width he is a speck on a card.
 ZOOM = {
-    "farms-and-mines-security": (0.42, 0.44, 0.62),  # (width fraction, centre x, centre y)
+    "farms-and-mines-security": (0.62, 0.62, 0.44),  # (width fraction, centre x, centre y)
 }
 
 # slug -> vertical centre of the card crop (0 = top, 1 = bottom)

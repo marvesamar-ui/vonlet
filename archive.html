@@ -15,9 +15,20 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preload" href="assets/fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="styles.css?v=ca776670">
+    <link rel="stylesheet" href="styles.css?v=09572eb5">
   <script src="main.js?v=68cd262e" defer></script>
 </head><body>
+
+  <!-- Intro curtain (styles.css): a CSS-only brand beat that lifts off the page
+       on a fixed timeline. No script, no pointer events, aria-hidden, and absent
+       for reduced motion — a failed script can never leave it covering the site. -->
+  <div class="page-loader" id="page-loader" aria-hidden="true">
+    <div class="page-loader-inner">
+      <p class="page-loader-word">VONLET</p>
+      <p class="page-loader-sub">Security services</p>
+      <span class="page-loader-rule"><i></i></span>
+    </div>
+  </div>
   <a class="skip-link" href="#main">Skip to main content</a>
 
   <!-- Reusable, dependency-free SVG icon sprite. Decorative uses are hidden from assistive technology. -->

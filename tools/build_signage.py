@@ -6,6 +6,15 @@ millimetres so each file can go straight to a fabricator, a printer or a sign
 shop. Each board is rendered at the resolution it needs — a 5.2 m reception wall
 does not need 300 dpi, an 800 mm plaque does.
 
+Modern edition. The kit is drawn on paper and stone rather than on navy: the
+field is the material a fabricator is actually printing onto, type is set in ink
+and the brand mustard is used as a graphic accent — a spine, a rule, a numeral —
+never as text, because #facc15 on white sits at 1.9:1 and would be unreadable at
+any distance. Where the accent has to be type it becomes #985c06, the same
+mustard the website uses for small mark-up, which clears 5:1 on paper. Signal
+red survives only where it is doing regulatory work: the warning boards and the
+after-hours redirect.
+
 Every string is measured with the real font metrics before it is placed, and
 long lines are shrunk or wrapped to the column they belong to, so type can never
 run into the next column.
@@ -26,10 +35,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import layout  # noqa: E402
-from layout import (  # noqa: E402
-    INK, LINE, LINE_STRONG, NAVY, NAVY_800, NAVY_850, NAVY_900, RED, RED_DEEP,
-    SLATE_300, SLATE_400, SLATE_500, WHITE, YELLOW, Page, text_width,
-)
+from layout import Page, text_width  # noqa: E402
 
 OUT = ROOT / "signage"
 BRAND = ROOT / "assets" / "brand"
@@ -41,6 +47,25 @@ WEB = "vonletsecurity.co.zw"
 ADDRESS_1 = "9 Blatherwick Road"
 ADDRESS_2 = "Queensdale, Harare"
 STRAP = "PROTECTION. WITHOUT COMPROMISE."
+
+# ---------------------------------------------------------------------------
+# tokens
+# ---------------------------------------------------------------------------
+PAPER = "#ffffff"        # the sheet the board is printed on
+STONE = "#f1f3f5"        # secondary field: photograph beds, payload panels
+TYPE = "#0b0f16"         # primary type, 19:1 on paper
+TYPE_SOFT = "#2b3440"    # long body copy
+MUTED = "#5f6a7a"        # captions and technical lines, 5.9:1 on paper
+HAIR = "#cfd6dd"         # hairline structure
+GOLD = "#facc15"         # brand mustard — fills and rules only, never type
+GOLD_INK = "#985c06"     # mustard as type, 5.0:1 on paper
+RED = "#c81a1a"          # regulation only: warnings, after-hours
+RED_DEEP = "#9e1414"
+
+# The safety vest is the one board that must stay high-visibility yellow; navy
+# type on it is the strongest pairing available (12.4:1).
+HIVIS = GOLD
+HIVIS_TYPE = "#0b1030"
 
 
 # ---------------------------------------------------------------------------
@@ -63,26 +88,17 @@ def draw(page: Page, x, y, value, role, size, color, tracking=0.0, max_w=None,
                      align=align, width=width)
 
 
-def kick(page: Page, x, y, value, color, size, tracking=0.0, max_w=None,
-         align="left", width=None) -> None:
-    """Letterspaced label, fitted to a maximum width."""
+def label(page: Page, x, y, value, size, color=MUTED, tracking=0.24, max_w=None,
+          align="left", width=None) -> None:
+    """Letterspaced technical caption — the kit's smallest voice."""
     value = value.upper()
     if max_w:
         size = fit(value, "semi", size, max_w, tracking)
     page.kicker(x, y, value, color, size, tracking, align=align, width=width)
 
 
-def draw_right(page: Page, right, y, value, role, size, color, tracking=0.0,
-               max_w=None, left=0.0) -> float:
-    """Right-align a line on `right`; `left` is where its column begins."""
-    if max_w:
-        size = fit(value, role, size, max_w, tracking)
-    return page.text(left, y, value, role, size, color, tracking,
-                     align="right", width=right - left)
-
-
-def kick_right(page: Page, right, y, value, color, size, tracking=0.0,
-               max_w=None, left=0.0) -> None:
+def label_right(page: Page, right, y, value, size, color=MUTED, tracking=0.24,
+                max_w=None, left=0.0) -> None:
     value = value.upper()
     if max_w:
         size = fit(value, "semi", size, max_w, tracking)
@@ -90,92 +106,115 @@ def kick_right(page: Page, right, y, value, color, size, tracking=0.0,
                 align="right", width=right - left)
 
 
-def para(page: Page, x, y, width, value, size, leading, color, max_lines=None):
-    """Wrapped body copy. Returns the baseline of the last line."""
-    return page.paragraph(x, y, width, value, "body", size, leading, color)
+def wrap_lines(value, width, size, role="body", track=0.0):
+    """Dry-run the wrapper so a block can be measured before it is drawn."""
+    lines, current = [], ""
+    for word in value.split():
+        trial = (current + " " + word).strip()
+        if not current or text_width(trial, role, size, track) <= width:
+            current = trial
+        else:
+            lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines
 
 
-def hairline(page: Page, x, y, w, color=LINE_STRONG, t=2.0) -> None:
+def para(page: Page, x, y, width, value, size, leading, color=TYPE_SOFT):
+    """Wrapped body copy, ragged right.
+
+    The engine justifies by default, which is right for a magazine column and
+    wrong for a sign: stretched word gaps read as damage at three metres.
+    """
+    return page.paragraph(x, y, width, value, "body", size, leading, color,
+                          justify=False)
+
+
+def hair(page: Page, x, y, w, color=HAIR, t=2.0) -> None:
     page.rule(x, y, w, t, color)
 
 
-# ---------------------------------------------------------------------------
-# shared furniture
-# ---------------------------------------------------------------------------
-def shield(page: Page, x, y, size, wordmark=True, max_w=None) -> float:
-    """Shield, and optionally the VONLET wordmark beside it.
+def vhair(page: Page, x, y, h, color=HAIR, t=2.0) -> None:
+    page.vrule(x, y, h, t, color)
 
-    `max_w` caps the whole lockup so it cannot run into the next column; the
-    shield shrinks with it.
-    """
+
+def spine(page: Page, side="left", w=18, color=GOLD) -> None:
+    """The one structural accent: a solid edge the board is hung against."""
+    W, H = page.width_mm, page.height_mm
+    if side == "left":
+        page.rect(0, 0, w, H, fill=color)
+    elif side == "right":
+        page.rect(W - w, 0, w, H, fill=color)
+    elif side == "bottom":
+        page.rect(0, H - w, W, w, fill=color)
+    else:
+        page.rect(0, 0, W, w, fill=color)
+
+
+def lockup(page: Page, x, y, size, ink=TYPE, sub=MUTED, max_w=None) -> float:
+    """Shield plus the VONLET wordmark, set in `ink` for the surface it is on."""
     if max_w:
         size = min(size, max_w / 3.05)
     page.image(x, y, size, size, LOGO, focus=(0.5, 0.5))
-    if not wordmark:
-        return x + size
     tx = x + size * 1.16
-    wm_size = fit("VONLET", "cond-bold", size * 0.58, size * 2.2, 0.02)
-    page.text(tx, y + size * 0.58, "VONLET", "cond-bold", wm_size, INK, 0.02)
-    kick(page, tx + size * 0.04, y + size * 0.84, "SECURITY SERVICES",
-         SLATE_400, size * 0.128, size * 0.006, max_w=size * 2.1)
-    return tx + text_width("VONLET", "cond-bold", wm_size, 0.02)
+    wm = fit("VONLET", "cond-bold", size * 0.58, size * 2.2, 0.02)
+    page.text(tx, y + size * 0.58, "VONLET", "cond-bold", wm, ink, 0.02)
+    label(page, tx + size * 0.04, y + size * 0.84, "SECURITY SERVICES",
+          size * 0.126, sub, size * 0.005, max_w=size * 2.1)
+    return tx + text_width("VONLET", "cond-bold", wm, 0.02)
 
 
-def foot_band(page: Page, h, label_left, label_right, color=RED) -> None:
-    """Solid strap along the bottom edge of a board."""
+def tech(page: Page, ref, title, size=None, color=MUTED) -> None:
+    """Technical caption along the bottom-left: reference, name, finished size."""
     W, H = page.width_mm, page.height_mm
-    page.rect(0, H - h, W, h, fill=color)
-    base = H - h / 2 + h * 0.13
-    kick(page, W * 0.035, base, label_left, INK, h * 0.30, h * 0.03,
-         max_w=W * 0.55)
-    if label_right:
-        kick_right(page, W * 0.965, base, label_right, INK, h * 0.30, h * 0.03,
-                   max_w=W * 0.38, left=W * 0.5)
-
-
-def top_rule(page: Page, h, colour=YELLOW) -> None:
-    page.rect(0, 0, page.width_mm, h, fill=colour)
+    size = size or max(14.0, min(W, H) * 0.022)
+    value = f"{ref}  ·  {title}  ·  {int(W)} × {int(H)} MM"
+    label(page, W * 0.055, H - size * 1.9, value, size, color,
+          tracking=0.2, max_w=W - W * 0.11)
 
 
 # ---------------------------------------------------------------------------
 # 01 — MAIN GATE PYLON  3600 x 2200 mm
 # ---------------------------------------------------------------------------
 def gate_pylon() -> Page:
-    """Full-width pylon: brand, statement, then the number in a yellow band.
-
-    Read from fifty metres away, so it carries three things and nothing else.
-    """
-    p = Page(width_mm=3600, height_mm=2200, bleed_mm=40, background=NAVY)
+    """White monolith, mustard spine, three things read from fifty metres."""
+    p = Page(width_mm=3600, height_mm=2200, bleed_mm=40, background=PAPER)
     W, H = 3600, 2200
+    spine(p, "left", 34, GOLD)
 
-    # masthead
-    p.rect(0, 0, W, 46, fill=YELLOW)
-    p.image(170, 200, 520, 520, LOGO, focus=(0.5, 0.5))
-    draw(p, 780, 560, "VONLET", "cond-bold", 320, INK, 0.02, max_w=1500)
-    kick(p, 792, 700, "SECURITY SERVICES", SLATE_300, 96, 10, max_w=1100)
-    hairline(p, 792, 760, 900, YELLOW, 12)
+    lockup(p, 190, 180, 430, ink=TYPE, sub=MUTED, max_w=1500)
+    hair(p, 190, 700, 1500, TYPE, 6)
 
-    # the statement
-    draw(p, 170, 1030, "SITE SECURED", "cond-bold", 280, INK, 0.01, max_w=2100)
-    draw(p, 170, 1300, "BY VONLET", "cond-bold", 280, YELLOW, 0.01, max_w=2100)
+    draw(p, 190, 1060, "SITE SECURED", "cond-bold", 300, TYPE, 0.01, max_w=2380)
+    draw(p, 190, 1380, "BY VONLET", "cond-bold", 300, GOLD_INK, 0.01, max_w=2380)
 
-    kick(p, 170, 1440, "MANNED GUARDING  ·  ELECTRONIC SECURITY  ·  K-9",
-         SLATE_400, 66, 8, max_w=2300)
-    kick(p, 170, 1530, f"{ADDRESS_1}, {ADDRESS_2}  ·  {WEB}", SLATE_500, 60, 7,
-         max_w=2400)
+    label(p, 196, 1560, "MANNED GUARDING  ·  ELECTRONIC SECURITY  ·  K-9",
+          64, MUTED, 0.16, max_w=2300)
+    label(p, 196, 1656, f"{ADDRESS_1}, {ADDRESS_2}  ·  {WEB}", 54, MUTED, 0.14,
+          max_w=2400)
 
-    # the number, on yellow, full width
-    band_y = H - 430
-    p.rect(0, band_y, W, 270, fill=YELLOW)
-    kick(p, 170, band_y + 74, "24-HOUR CONTROL ROOM", NAVY, 68, 7, max_w=1000)
-    draw(p, 170, band_y + 232, PHONE, "cond-bold", 132, NAVY, 0.01, max_w=1900)
-    kick_right(p, W - 170, band_y + 232, "EMERGENCY · ANY HOUR", NAVY, 58, 6,
-               max_w=1100)
+    # right rail: the capability list, set small against a hairline, so the
+    # board is balanced without competing with the statement
+    vhair(p, 2820, 180, 1180, HAIR, 3)
+    for i, cap in enumerate(("MANNED GUARDING", "ELECTRONIC SECURITY",
+                             "K-9 UNITS", "CASH IN TRANSIT")):
+        label_right(p, W - 190, 330 + i * 168, cap, 66, MUTED, 0.18,
+                    max_w=1010, left=2940)
 
-    # licensing strip
-    p.rect(0, H - 160, W, 160, fill=RED)
-    kick(p, 170, H - 68, STRAP, INK, 68, 8, max_w=1500)
-    kick_right(p, W - 170, H - 68, "ZIMBABWE  ·  ZAMBIA", INK, 68, 8, max_w=900)
+    # the number, on the mustard plinth at the foot of the board
+    band = H - 380
+    p.rect(0, band, W, 300, fill=GOLD)
+    label(p, 190, band + 78, "24-HOUR CONTROL ROOM", 62, TYPE, 0.2, max_w=1100)
+    draw(p, 190, band + 250, PHONE, "cond-bold", 150, TYPE, 0.01, max_w=1900)
+    label_right(p, W - 190, band + 250, "EMERGENCY · ANY HOUR", 56, TYPE, 0.18,
+                max_w=1100, left=W * 0.55)
+
+    # quiet footer rail
+    hair(p, 0, H - 60, W, TYPE, 4)
+    label(p, 190, H - 22, STRAP, 44, TYPE, 0.22, max_w=1300)
+    label_right(p, W - 190, H - 22, "ZIMBABWE  ·  ZAMBIA", 44, MUTED, 0.22,
+                max_w=900, left=W * 0.6)
     return p
 
 
@@ -183,64 +222,90 @@ def gate_pylon() -> Page:
 # 02 — PEDESTRIAN GATE PLATE  2400 x 900 mm
 # ---------------------------------------------------------------------------
 def gate_plate() -> Page:
-    p = Page(width_mm=2400, height_mm=900, bleed_mm=30, background=NAVY)
+    p = Page(width_mm=2400, height_mm=900, bleed_mm=30, background=PAPER)
     W, H = 2400, 900
-    p.rect(0, 0, 46, H, fill=YELLOW)
-    shield(p, 130, 190, 500, max_w=1290)
-    kick(p, 130, 730, "AUTHORISED ENTRY ONLY", YELLOW, 80, 8, max_w=1320)
+    spine(p, "left", 20, GOLD)
 
-    p.vrule(1520, 120, 660, 10, LINE_STRONG)
-    rx, rw = 1620, 680
-    kick(p, rx, 210, "SIGN IN AT THE GATEHOUSE", SLATE_300, 60, 6, max_w=rw)
-    draw(p, rx, 360, "ALL VISITORS", "cond-bold", 132, INK, 0.01, max_w=rw)
-    draw(p, rx, 500, "MUST REPORT", "cond-bold", 132, YELLOW, 0.01, max_w=rw)
-    hairline(p, rx, 570, rw)
-    kick(p, rx, 650, "VEHICLES SUBJECT TO SEARCH", SLATE_400, 56, 6, max_w=rw)
-    kick(p, rx, 730, "SITE CLOSED 18:00 — 06:00", SLATE_500, 52, 5, max_w=rw)
+    lockup(p, 130, 170, 430, ink=TYPE, sub=MUTED, max_w=1180)
+    hair(p, 130, 690, 1150, HAIR, 4)
+    label(p, 136, 760, "AUTHORISED ENTRY ONLY", 74, GOLD_INK, 0.2, max_w=1150)
+
+    vhair(p, 1500, 140, 620, HAIR, 3)
+    rx, rw = 1620, 660
+    label(p, rx, 214, "SIGN IN AT THE GATEHOUSE", 58, MUTED, 0.18, max_w=rw)
+    draw(p, rx, 400, "ALL VISITORS", "cond-bold", 128, TYPE, 0.01, max_w=rw)
+    draw(p, rx, 540, "MUST REPORT", "cond-bold", 128, TYPE, 0.01, max_w=rw)
+    hair(p, rx, 604, rw, TYPE, 5)
+    label(p, rx, 672, "VEHICLES SUBJECT TO SEARCH", 54, MUTED, 0.16, max_w=rw)
+    label(p, rx, 748, "SITE CLOSED 18:00 — 06:00", 50, MUTED, 0.16, max_w=rw)
     return p
 
 
 # ---------------------------------------------------------------------------
 # 03–05 — WARNING BOARDS  600 x 450 mm
 # ---------------------------------------------------------------------------
-def _warning(title_lines, note, footer, accent=YELLOW, pict=None):
-    p = Page(width_mm=600, height_mm=450, bleed_mm=15, background=NAVY)
+def _pict_camera(p, x, y, colour):
+    """A CCTV camera in profile: housing, lens barrel, bracket, mount plate."""
+    p.rect(x + 4, y + 14, 42, 26, fill=colour)          # housing
+    p.rect(x + 46, y + 19, 14, 16, fill=colour)         # lens barrel
+    p.rect(x + 52, y + 23, 6, 8, fill=PAPER)            # lens face
+    p.rect(x + 18, y + 6, 7, 8, fill=colour)            # stem
+    p.rect(x + 6, y + 1, 30, 5, fill=colour)            # mount plate
+
+
+def _pict_dog(p, x, y, colour):
+    """A handler and a K-9 side by side, both standing."""
+    p.rect(x + 4, y - 2, 10, 10, fill=colour)           # handler head
+    p.rect(x + 6, y + 10, 6, 36, fill=colour)           # handler body
+    p.rect(x + 2, y + 18, 16, 4, fill=colour)           # leading arm
+    p.rect(x + 20, y + 24, 28, 14, fill=colour)         # dog barrel
+    p.rect(x + 44, y + 12, 13, 12, fill=colour)         # dog head
+    p.rect(x + 44, y + 5, 5, 8, fill=colour)            # ear
+    p.rect(x + 24, y + 38, 4, 13, fill=colour)          # forelegs
+    p.rect(x + 40, y + 38, 4, 13, fill=colour)          # hind legs
+    p.rect(x + 18, y + 20, 7, 4, fill=colour)           # tail
+
+
+def _pict_vehicle(p, x, y, colour):
+    """A vehicle in elevation, a barrier arm down across the lane."""
+    p.rect(x + 2, y + 20, 62, 18, fill=colour)          # body
+    p.rect(x + 34, y + 8, 24, 14, fill=colour)          # cab
+    p.rect(x + 8, y + 40, 12, 8, fill=colour)           # wheels
+    p.rect(x + 46, y + 40, 12, 8, fill=colour)
+    p.rect(x + 68, y + 2, 5, 46, fill=colour)           # barrier post
+    p.rect(x + 14, y + 6, 54, 4, fill=colour)           # barrier arm
+
+
+def _warning(title_lines, note, footer, accent=GOLD_INK, pict=None):
+    p = Page(width_mm=600, height_mm=450, bleed_mm=15, background=PAPER)
     W, H = 600, 450
-    p.rect(0, 0, W, 36, fill=RED)
-    kick(p, 36, 26, "VONLET SECURITY", INK, 20, 2.6, max_w=W - 72)
 
-    # pictogram field
-    p.rect(36, 62, 96, 96, fill=accent)
+    # regulation rail: red stays on the warning boards and nowhere else
+    p.rect(0, 0, W, 12, fill=RED)
+    label(p, 40, 52, "VONLET SECURITY  ·  SITE NOTICE", 18, MUTED, 0.22,
+          max_w=W - 80)
+
+    # framed pictogram, drawn in ink so it survives a two-colour print
+    p.rect(40, 78, 84, 84, fill=None, stroke=HAIR, stroke_w=1.6)
     if pict:
-        pict(p)
+        pict(p, 52, 96, TYPE)
 
-    y = 200
+    y = 226
     for line in title_lines:
-        size = fit(line, "cond-bold", 56, W - 72, 0.01)
-        draw(p, 36, y, line, "cond-bold", size, INK, 0.01)
-        y += size * 1.12
+        size = fit(line, "cond-bold", 50, W - 80, 0.01)
+        draw(p, 40, y, line, "cond-bold", size, TYPE, 0.01)
+        y += size * 1.06
 
-    # body copy flows from the title block, footer sits under whatever it becomes
-    body_size = 21
-    bottom = para(p, 36, y + 14, W - 72, note, body_size, 1.32, SLATE_400)
-    hairline(p, 36, bottom + 24, W - 72)
-    kick(p, 36, bottom + 56, footer, accent, 18, 2.4, max_w=W - 72)
+    # The footer is anchored to the trim, so the note is sized to the room that
+    # is actually left between the title and the hairline rather than guessed.
+    hair(p, 40, H - 62, W - 80, HAIR, 2.4)
+    label(p, 40, H - 28, footer, 18, accent, 0.18, max_w=W - 80)
+
+    top, limit, size = y + 22, H - 84, 17.0
+    while size > 12 and top + (len(wrap_lines(note, W - 80, size)) - 1) * size * 1.36 > limit:
+        size -= 0.5
+    para(p, 40, top, W - 80, note, size, 1.36, TYPE_SOFT)
     return p
-
-
-def _pict_camera(p):
-    p.rect(50, 78, 52, 34, fill=NAVY)
-    p.rect(102, 84, 18, 20, fill=NAVY)
-    p.rect(62, 112, 8, 34, fill=NAVY)
-
-
-def _pict_dog(p):
-    p.rect(50, 78, 52, 34, fill=NAVY_900)
-    p.rect(108, 78, 18, 34, fill=NAVY_900)
-
-
-def _pict_vehicle(p):
-    p.rect(50, 84, 68, 44, fill=NAVY)
 
 
 def warning_cctv():
@@ -268,62 +333,56 @@ def warning_search():
 # 06 — RECEPTION WALL  5200 x 2400 mm
 # ---------------------------------------------------------------------------
 def reception_wall() -> Page:
-    """The wall behind the reception desk at head office.
-
-    Split 60/40: a quiet brand field on the left that a visitor reads while
-    waiting, and the practical side on the right — the team, then how to sign in
-    and who to call. Only four things compete for attention.
-    """
-    p = Page(width_mm=5200, height_mm=2400, bleed_mm=50, background=NAVY)
+    """The hero wall: a quiet brand field left, the practical side right."""
+    p = Page(width_mm=5200, height_mm=2400, bleed_mm=50, background=PAPER)
     W, H = 5200, 2400
-    p.rect(0, 0, W, 34, fill=YELLOW)
+    p.rect(0, 0, W, 18, fill=GOLD)
 
-    # --- left: the brand field ---------------------------------------------
-    p.image(300, 250, 620, 620, LOGO, focus=(0.5, 0.5))
-    draw(p, 300, 1120, "VONLET", "cond-bold", 330, INK, 0.02, max_w=2600)
-    kick(p, 312, 1250, "SECURITY SERVICES", SLATE_300, 94, 11, max_w=2000)
-    hairline(p, 300, 1330, 2680, YELLOW, 10)
+    # --- left: brand field -------------------------------------------------
+    lockup(p, 300, 240, 520, ink=TYPE, sub=MUTED, max_w=2500)
+    hair(p, 300, 1000, 2500, TYPE, 6)
 
-    for i, (line, colour) in enumerate([("PROTECTION.", INK),
-                                        ("WITHOUT", YELLOW),
-                                        ("COMPROMISE.", INK)]):
-        size = fit(line, "cond-bold", 200, 2680, 0.01)
-        p.text(300, 1590 + i * (size * 1.08), line, "cond-bold", size,
+    for i, (line, colour) in enumerate([("PROTECTION.", TYPE),
+                                        ("WITHOUT", GOLD_INK),
+                                        ("COMPROMISE.", TYPE)]):
+        size = fit(line, "cond-bold", 210, 2620, 0.01)
+        p.text(300, 1320 + i * (size * 1.06), line, "cond-bold", size,
                colour, 0.01)
 
-    kick(p, 300, 2190, "MANNED GUARDING  ·  CASH IN TRANSIT  ·  ELECTRONIC SECURITY",
-         SLATE_500, 52, 6, max_w=2680)
+    hair(p, 300, 2060, 2500, HAIR, 3)
+    label(p, 306, 2130, "MANNED GUARDING  ·  CASH IN TRANSIT  ·  ELECTRONIC SECURITY",
+          50, MUTED, 0.16, max_w=2500)
 
-    # --- right: the practical side -----------------------------------------
-    p.vrule(3100, 250, 1990, 10, LINE_STRONG)
+    # --- right: the practical side ----------------------------------------
+    vhair(p, 3060, 240, 1830, HAIR, 4)
 
-    rx, rw = 3260, 1620
-    p.image(rx, 250, rw, 760,
+    rx, rw = 3220, 1580
+    p.image(rx, 240, rw, 720,
             ROOT / "assets/images/master/full/wa-09-suit-team-entrance.webp",
             focus=(0.5, 0.24))
-    kick(p, rx, 1070, "OFFICERS BADGED FOR A CORPORATE POSTING", SLATE_500, 46, 5,
-         max_w=rw)
+    label(p, rx, 1030, "OFFICERS BADGED FOR A CORPORATE POSTING", 44, MUTED,
+          0.16, max_w=rw)
 
-    kick(p, rx, 1180, "WELCOME TO VONLET", YELLOW, 60, 7, max_w=rw)
-    draw(p, rx, 1310, "Sign in at", "cond-bold", 132, INK, 0.01, max_w=rw)
-    draw(p, rx, 1430, "reception.", "cond-bold", 132, YELLOW, 0.01, max_w=rw)
-    para(p, rx, 1500, rw,
+    draw(p, rx, 1210, "SIGN IN AT", "cond-bold", 140, TYPE, 0.01, max_w=rw)
+    draw(p, rx, 1350, "RECEPTION", "cond-bold", 140, GOLD_INK, 0.01, max_w=rw)
+    para(p, rx, 1430, rw,
          "All visitors report to reception and are issued a visitor pass. "
-         "Officers will direct you to your appointment.", 50, 1.38, SLATE_300)
+         "Officers will direct you to your appointment.", 46, 1.4, TYPE_SOFT)
 
     rows = [("CONTROL ROOM  ·  24 HOURS", PHONE),
             ("EMAIL", EMAIL),
             ("HEAD OFFICE", f"{ADDRESS_1}, {ADDRESS_2}")]
-    y = 1700
-    for label, value in rows:
-        hairline(p, rx, y - 52, rw, LINE, 4)
-        kick(p, rx, y, label, SLATE_500, 42, 5, max_w=rw)
-        draw(p, rx, y + 82, value, "body", 56, INK, 0.0, max_w=rw)
-        y += 190
+    y = 1690
+    for name, value in rows:
+        hair(p, rx, y - 54, rw, HAIR, 2.4)
+        label(p, rx, y, name, 40, MUTED, 0.18, max_w=rw)
+        draw(p, rx, y + 80, value, "body", 54, TYPE, 0.0, max_w=rw)
+        y += 186
 
-    p.rect(0, H - 120, W, 120, fill=RED)
-    kick(p, 300, H - 62, f"{PHONE}   ·   {WEB}", INK, 54, 6, max_w=2400)
-    kick_right(p, W - 300, H - 62, "ZIMBABWE  ·  ZAMBIA", INK, 54, 6, max_w=900)
+    p.rect(0, H - 104, W, 14, fill=GOLD)
+    label(p, 300, H - 44, f"{PHONE}   ·   {WEB}", 50, MUTED, 0.18, max_w=2400)
+    label_right(p, W - 300, H - 44, "ZIMBABWE  ·  ZAMBIA", 50, MUTED, 0.18,
+                max_w=900, left=W * 0.6)
     return p
 
 
@@ -331,20 +390,22 @@ def reception_wall() -> Page:
 # 07 — RECEPTION DESK FRONT  2400 x 1100 mm
 # ---------------------------------------------------------------------------
 def reception_desk() -> Page:
-    p = Page(width_mm=2400, height_mm=1100, bleed_mm=30, background=NAVY_900)
+    p = Page(width_mm=2400, height_mm=1100, bleed_mm=30, background=PAPER)
     W, H = 2400, 1100
-    p.rect(0, 0, W, 24, fill=YELLOW)
-    shield(p, 110, 300, 400)
-    kick(p, 110, 810, "RECEPTION", YELLOW, 96, 9, max_w=900)
+    spine(p, "left", 22, GOLD)
 
-    p.vrule(1520, 180, 740, 8, LINE_STRONG)
-    rx, rw = 1620, 700
-    kick(p, rx, 280, "PLEASE WAIT TO BE SEEN", SLATE_300, 54, 5, max_w=rw)
-    draw(p, rx, 440, "A HOST WILL", "cond-bold", 104, INK, 0.01, max_w=rw)
-    draw(p, rx, 570, "COLLECT YOU", "cond-bold", 104, YELLOW, 0.01, max_w=rw)
-    hairline(p, rx, 640, rw)
-    para(p, rx, 720, rw, "Visitor passes must be worn at all times while on site.",
-         44, 1.35, SLATE_400)
+    lockup(p, 120, 250, 360, ink=TYPE, sub=MUTED, max_w=1150)
+    hair(p, 120, 720, 1120, TYPE, 5)
+    draw(p, 120, 900, "RECEPTION", "cond-bold", 120, TYPE, 0.02, max_w=1120)
+
+    vhair(p, 1420, 200, 700, HAIR, 3)
+    rx, rw = 1520, 740
+    label(p, rx, 274, "PLEASE WAIT TO BE SEEN", 52, MUTED, 0.18, max_w=rw)
+    draw(p, rx, 460, "A HOST WILL", "cond-bold", 108, TYPE, 0.01, max_w=rw)
+    draw(p, rx, 590, "COLLECT YOU", "cond-bold", 108, GOLD_INK, 0.01, max_w=rw)
+    hair(p, rx, 650, rw, HAIR, 3)
+    para(p, rx, 726, rw, "Visitor passes must be worn at all times while on site.",
+         44, 1.36, TYPE_SOFT)
     return p
 
 
@@ -352,23 +413,24 @@ def reception_desk() -> Page:
 # 08 — AFTER-HOURS RECEPTION BOARD  1200 x 800 mm
 # ---------------------------------------------------------------------------
 def reception_after_hours() -> Page:
-    p = Page(width_mm=1200, height_mm=800, bleed_mm=20, background=NAVY)
+    p = Page(width_mm=1200, height_mm=800, bleed_mm=20, background=PAPER)
     W, H = 1200, 800
-    p.rect(0, 0, W, 28, fill=RED)
-    shield(p, 60, 74, 108)
-    hairline(p, 60, 230, W - 120, LINE_STRONG, 4)
+    p.rect(0, 0, W, 10, fill=RED)          # after-hours: the one red field
+    lockup(p, 70, 70, 116, ink=TYPE, sub=MUTED, max_w=W - 140)
+    hair(p, 70, 224, W - 140, HAIR, 2.4)
 
-    kick(p, 60, 300, "RECEPTION IS CLOSED", YELLOW, 38, 4, max_w=W - 120)
-    y = 360
-    for line, colour in [("After hours, all", INK), ("entry is through", INK),
-                         ("the security gate.", YELLOW)]:
-        size = fit(line, "cond-bold", 58, W - 120, 0.01)
-        p.text(60, y, line, "cond-bold", size, colour, 0.01)
-        y += size * 1.06
+    label(p, 76, 292, "RECEPTION IS CLOSED", 36, RED, 0.2, max_w=W - 140)
+    y = 372
+    for line, colour in [("After hours, all", TYPE), ("entry is through", TYPE),
+                         ("the security gate.", GOLD_INK)]:
+        size = fit(line, "cond-bold", 60, W - 140, 0.01)
+        p.text(70, y, line, "cond-bold", size, colour, 0.01)
+        y += size * 1.04
 
-    kick(p, 60, 610, "CALL THE CONTROL ROOM", SLATE_500, 24, 3, max_w=400)
-    draw(p, 60, 680, PHONE, "cond-bold", 66, INK, 0.01, max_w=W - 120)
-    kick(p, 60, 736, f"{EMAIL}  ·  {WEB}", SLATE_500, 20, 2.2, max_w=W - 120)
+    hair(p, 70, 610, W - 140, TYPE, 4)
+    label(p, 76, 650, "CALL THE CONTROL ROOM", 26, MUTED, 0.2, max_w=500)
+    draw(p, 70, 720, PHONE, "cond-bold", 60, TYPE, 0.01, max_w=W - 140)
+    label(p, 76, 764, f"{EMAIL}   ·   {WEB}", 19, MUTED, 0.14, max_w=W - 140)
     return p
 
 
@@ -376,23 +438,22 @@ def reception_after_hours() -> Page:
 # 09 — VEHICLE LIVERY, DOOR PANEL  2200 x 900 mm
 # ---------------------------------------------------------------------------
 def vehicle_livery() -> Page:
-    p = Page(width_mm=2200, height_mm=900, bleed_mm=25, background=WHITE)
+    p = Page(width_mm=2200, height_mm=900, bleed_mm=25, background=PAPER)
     W, H = 2200, 900
-    p.rect(0, 0, W, 110, fill=YELLOW)
-    kick(p, 80, 76, "RAPID RESPONSE  ·  24 HOURS", NAVY, 56, 7, max_w=900)
+    spine(p, "bottom", 16, GOLD)
 
-    p.image(80, 210, 360, 360, LOGO, focus=(0.5, 0.5))
-    draw(p, 470, 430, "VONLET", "cond-bold", 220, NAVY, 0.02, max_w=800)
-    kick(p, 482, 530, "SECURITY SERVICES", SLATE_500, 70, 8, max_w=760)
-    p.rect(470, 580, 560, 8, fill=RED)
-    draw(p, 470, 760, PHONE, "cond-bold", 112, NAVY, 0.01, max_w=760)
+    p.image(90, 170, 380, 380, LOGO, focus=(0.5, 0.5))
+    draw(p, 540, 400, "VONLET", "cond-bold", 230, TYPE, 0.02, max_w=760)
+    label(p, 556, 470, "SECURITY SERVICES", 64, MUTED, 0.2, max_w=740)
+    hair(p, 540, 540, 700, GOLD, 8)
+    draw(p, 540, 700, PHONE, "cond-bold", 108, TYPE, 0.01, max_w=760)
 
-    rx, rw = 1290, W - 1290 - 70
-    draw(p, rx, 620, WEB, "body", 56, SLATE_500, 0.0, max_w=rw)
-    draw(p, rx, 700, EMAIL, "body", 56, SLATE_500, 0.0, max_w=rw)
-    draw(p, rx, 780, f"{ADDRESS_1}, {ADDRESS_2}", "body", 50, SLATE_500, 0.0,
-         max_w=rw)
-    p.rect(W - 10, 0, 10, H, fill=RED)
+    vhair(p, 1330, 190, 470, HAIR, 3)
+    rx, rw = 1420, W - 1420 - 90
+    label(p, rx, 236, "RAPID RESPONSE  ·  24 HOURS", 52, GOLD_INK, 0.18, max_w=rw)
+    label(p, rx, 330, WEB, 46, MUTED, 0.14, max_w=rw)
+    label(p, rx, 410, EMAIL, 46, MUTED, 0.14, max_w=rw)
+    label(p, rx, 490, f"{ADDRESS_1}, {ADDRESS_2}", 42, MUTED, 0.14, max_w=rw)
     return p
 
 
@@ -400,16 +461,16 @@ def vehicle_livery() -> Page:
 # 10 — NOTICE / INFORMATION BOARD  800 x 1100 mm
 # ---------------------------------------------------------------------------
 def notice_board() -> Page:
-    p = Page(width_mm=800, height_mm=1100, bleed_mm=20, background=NAVY)
+    p = Page(width_mm=800, height_mm=1100, bleed_mm=20, background=PAPER)
     W, H = 800, 1100
-    p.rect(0, 0, W, 16, fill=YELLOW)
-    p.rect(0, 16, W, 12, fill=RED)
-    shield(p, 60, 66, 88)
-    hairline(p, 60, 200, W - 120, LINE_STRONG, 3)
+    p.rect(0, 0, W, 14, fill=GOLD)
 
-    draw(p, 60, 280, "NOTICE TO", "cond-bold", 70, INK, 0.01, max_w=W - 120)
-    draw(p, 60, 350, "ALL PERSONS", "cond-bold", 70, YELLOW, 0.01, max_w=W - 120)
-    draw(p, 60, 420, "ON SITE", "cond-bold", 70, INK, 0.01, max_w=W - 120)
+    lockup(p, 62, 70, 96, ink=TYPE, sub=MUTED, max_w=W - 124)
+    hair(p, 62, 250, W - 124, TYPE, 4)
+
+    draw(p, 62, 340, "NOTICE TO", "cond-bold", 72, TYPE, 0.01, max_w=W - 124)
+    draw(p, 62, 414, "ALL PERSONS", "cond-bold", 72, GOLD_INK, 0.01, max_w=W - 124)
+    draw(p, 62, 488, "ON SITE", "cond-bold", 72, TYPE, 0.01, max_w=W - 124)
 
     rules = [
         "Report to the gatehouse or reception on arrival.",
@@ -418,15 +479,16 @@ def notice_board() -> Page:
         "Vehicles, bags and personal effects may be searched.",
         "Follow the instructions of security officers at all times.",
     ]
-    # spread the list so it fills the board instead of leaving a third empty
-    y = 500
+    y = 566
     for i, rule in enumerate(rules, 1):
-        p.text(60, y, f"{i:02d}", "cond-bold", 30, YELLOW)
-        para(p, 122, y, W - 182, rule, 26, 1.34, SLATE_300)
-        y += 104
+        p.text(62, y, f"{i:02d}", "cond-bold", 28, GOLD_INK)
+        bottom = para(p, 128, y, W - 190, rule, 23, 1.32, TYPE_SOFT)
+        if i < len(rules):
+            hair(p, 62, bottom + 30, W - 124, HAIR, 2)
+        y = bottom + 66
 
-    hairline(p, 60, H - 118, W - 120, LINE, 3)
-    kick(p, 60, H - 70, f"CONTROL ROOM  {PHONE}", YELLOW, 22, 2.5, max_w=W - 120)
+    hair(p, 62, H - 96, W - 124, TYPE, 3)
+    label(p, 62, H - 48, f"CONTROL ROOM  {PHONE}", 21, MUTED, 0.18, max_w=W - 124)
     return p
 
 
@@ -434,23 +496,24 @@ def notice_board() -> Page:
 # 11 — HI-VIS SAFETY VEST BACK PANEL  560 x 640 mm
 # ---------------------------------------------------------------------------
 def safety_vest() -> Page:
-    p = Page(width_mm=560, height_mm=640, bleed_mm=10, background=YELLOW)
+    """The one board that stays high-visibility: ink on the vest's own yellow."""
+    p = Page(width_mm=560, height_mm=640, bleed_mm=10, background=HIVIS)
     W, H = 560, 640
-    p.rect(0, 0, W, 48, fill=RED)
-    kick(p, 28, 33, "VONLET SECURITY", INK, 20, 2.6, max_w=W - 56)
-    p.rect(0, H - 48, W, 48, fill=RED)
+    p.rect(0, 0, W, 10, fill=RED)
+    p.rect(0, H - 10, W, 10, fill=RED)
 
-    draw(p, 28, 140, "VONLET", "cond-bold", 88, NAVY, 0.02, max_w=300)
-    kick(p, 30, 178, "SECURITY SERVICES", NAVY, 22, 2.6, max_w=300)
-    p.rect(28, 208, 260, 6, fill=RED)
+    p.image(30, 44, 96, 96, LOGO, focus=(0.5, 0.5))
+    draw(p, 144, 116, "VONLET", "cond-bold", 84, HIVIS_TYPE, 0.02, max_w=390)
+    label(p, 148, 156, "SECURITY SERVICES", 21, HIVIS_TYPE, 0.2, max_w=380)
+    p.rect(30, 190, 500, 4, fill=HIVIS_TYPE)
 
-    kick(p, 28, 262, "SECURITY", NAVY, 38, 4, max_w=320)
-    draw(p, 28, 350, "ON DUTY", "cond-bold", 82, NAVY, 0.01, max_w=340)
-    kick(p, 28, 406, "24 HOUR CONTROL ROOM", NAVY, 21, 2.4, max_w=340)
-    draw(p, 28, 470, PHONE, "cond-bold", 50, NAVY, 0.01, max_w=340)
-
-    p.image(392, 286, 120, 120, LOGO, focus=(0.5, 0.5))
-    kick(p, 28, 556, "AUTHORISED PERSONNEL ONLY", NAVY, 20, 2.4, max_w=W - 56)
+    label(p, 34, 250, "SECURITY", 38, HIVIS_TYPE, 0.18, max_w=480)
+    draw(p, 30, 350, "ON DUTY", "cond-bold", 96, HIVIS_TYPE, 0.01, max_w=500)
+    hair(p, 30, 384, 500, HIVIS_TYPE, 4)
+    label(p, 34, 440, "24 HOUR CONTROL ROOM", 21, HIVIS_TYPE, 0.18, max_w=480)
+    draw(p, 30, 520, PHONE, "cond-bold", 56, HIVIS_TYPE, 0.01, max_w=500)
+    label(p, 34, 580, "AUTHORISED PERSONNEL ONLY", 20, HIVIS_TYPE, 0.18,
+          max_w=500)
     return p
 
 
@@ -458,23 +521,24 @@ def safety_vest() -> Page:
 # 12 — SITE ID / COMPANY PLAQUE  600 x 400 mm
 # ---------------------------------------------------------------------------
 def company_plaque() -> Page:
-    p = Page(width_mm=600, height_mm=400, bleed_mm=12, background=NAVY_900)
+    """A plaque reads as a plate: hairline frame, mark, then the practical lines."""
+    p = Page(width_mm=600, height_mm=400, bleed_mm=12, background=PAPER)
     W, H = 600, 400
-    p.rect(0, 0, W, 16, fill=YELLOW)
-    p.rect(0, H - 16, W, 16, fill=RED)
+    p.rect(28, 28, W - 56, H - 56, fill=None, stroke=HAIR, stroke_w=1.4)
+    p.rect(28, 28, 66, 5, fill=GOLD)
 
-    p.image(36, 62, 104, 104, LOGO, focus=(0.5, 0.5))
-    draw(p, 160, 130, "VONLET", "cond-bold", 74, INK, 0.02, max_w=380)
-    kick(p, 166, 168, "SECURITY SERVICES", SLATE_400, 24, 2.8, max_w=380)
-    hairline(p, 36, 202, W - 72, LINE_STRONG, 3)
+    p.image(56, 66, 92, 92, LOGO, focus=(0.5, 0.5))
+    draw(p, 172, 122, "VONLET", "cond-bold", 68, TYPE, 0.02, max_w=370)
+    label(p, 176, 160, "SECURITY SERVICES", 22, MUTED, 0.2, max_w=360)
+    hair(p, 56, 196, W - 112, TYPE, 3)
 
     rows = [(PHONE, WEB), (ADDRESS_1, ADDRESS_2)]
-    y = 252
+    y = 244
     for left, right in rows:
-        draw(p, 36, y, left, "body", 24, SLATE_300, 0.0, max_w=250)
-        draw(p, 300, y, right, "body", 24, SLATE_300, 0.0, max_w=W - 336)
+        draw(p, 56, y, left, "body", 23, TYPE_SOFT, 0.0, max_w=250)
+        draw(p, 306, y, right, "body", 23, TYPE_SOFT, 0.0, max_w=W - 330)
         y += 40
-    kick(p, 36, H - 38, STRAP, SLATE_500, 17, 2.2, max_w=W - 72)
+    label(p, 56, H - 46, STRAP, 16, MUTED, 0.2, max_w=W - 112)
     return p
 
 
@@ -482,22 +546,21 @@ def company_plaque() -> Page:
 # 13 — EVENT BACKDROP  3000 x 750 mm
 # ---------------------------------------------------------------------------
 def event_backdrop() -> Page:
-    p = Page(width_mm=3000, height_mm=750, bleed_mm=30, background=NAVY)
+    p = Page(width_mm=3000, height_mm=750, bleed_mm=30, background=PAPER)
     W, H = 3000, 750
-    p.rect(0, 0, W, 14, fill=RED)
-    p.image(90, 180, 360, 360, LOGO, focus=(0.5, 0.5))
-    draw(p, 500, 400, "VONLET", "cond-bold", 260, INK, 0.02, max_w=800)
-    kick(p, 512, 500, "SECURITY SERVICES", SLATE_300, 74, 8, max_w=800)
+    p.rect(0, H - 14, W, 14, fill=GOLD)
 
-    p.vrule(1420, 120, 470, 8, LINE_STRONG)
-    tx, tw_ = 1540, 1350
-    draw(p, tx, 300, "PROTECTION.", "cond-bold", 146, INK, 0.01, max_w=tw_)
-    draw(p, tx, 450, "WITHOUT COMPROMISE.", "cond-bold", 146, YELLOW, 0.01, max_w=tw_)
-    kick(p, tx, 545, "MANNED GUARDING  ·  CASH IN TRANSIT", SLATE_400, 48, 5, max_w=tw_)
-    kick(p, tx, 615, "ELECTRONIC SECURITY  ·  K-9  ·  TRAINING", SLATE_400, 48, 5, max_w=tw_)
+    lockup(p, 90, 170, 330, ink=TYPE, sub=MUTED, max_w=1400)
+    vhair(p, 1400, 150, 400, HAIR, 3)
 
-    p.rect(0, H - 92, W, 92, fill=RED)
-    kick(p, 90, H - 34, f"{PHONE}   ·   {WEB}", INK, 50, 6, max_w=W - 180)
+    tx, tw = 1520, 1390
+    draw(p, tx, 300, "PROTECTION.", "cond-bold", 140, TYPE, 0.01, max_w=tw)
+    draw(p, tx, 450, "WITHOUT COMPROMISE.", "cond-bold", 140, GOLD_INK, 0.01,
+         max_w=tw)
+    label(p, tx, 540, "MANNED GUARDING  ·  CASH IN TRANSIT", 44, MUTED, 0.16,
+          max_w=tw)
+    label(p, tx, 610, "ELECTRONIC SECURITY  ·  K-9  ·  TRAINING", 44, MUTED, 0.16,
+          max_w=tw)
     return p
 
 
@@ -505,20 +568,20 @@ def event_backdrop() -> Page:
 # 14 — FLOOR WAYFINDING  900 x 300 mm
 # ---------------------------------------------------------------------------
 def wayfinding() -> Page:
-    p = Page(width_mm=900, height_mm=300, bleed_mm=15, background=NAVY_900)
+    p = Page(width_mm=900, height_mm=300, bleed_mm=15, background=PAPER)
     W, H = 900, 300
-    p.rect(0, 0, 18, H, fill=YELLOW)
-    p.image(56, 92, 108, 108, LOGO, focus=(0.5, 0.5))
-    kick(p, 56, 58, "VONLET SECURITY", SLATE_500, 20, 2.4, max_w=220)
-    draw(p, 200, 158, "RECEPTION", "cond-bold", 76, INK, 0.02, max_w=430)
-    draw(p, 200, 224, "VISITORS SIGN IN HERE", "cond-bold", 44, YELLOW, 0.01,
-         max_w=430)
+    spine(p, "left", 16, GOLD)
 
-    # arrow, built from bars
+    p.image(56, 96, 96, 96, LOGO, focus=(0.5, 0.5))
+    label(p, 52, 56, "VONLET SECURITY", 19, MUTED, 0.2, max_w=210)
+    draw(p, 186, 168, "RECEPTION", "cond-bold", 74, TYPE, 0.02, max_w=430)
+    label(p, 190, 236, "VISITORS SIGN IN HERE", 34, GOLD_INK, 0.16, max_w=430)
+
+    # arrow, built from bars so it stays crisp at any size
     ay = H / 2
-    p.rect(W - 205, ay - 9, 110, 18, fill=YELLOW)
-    p.rect(W - 108, ay - 34, 18, 68, fill=YELLOW)
-    p.rect(W - 126, ay - 17, 18, 34, fill=YELLOW)
+    p.rect(W - 214, ay - 8, 104, 16, fill=TYPE)
+    p.rect(W - 122, ay - 30, 14, 60, fill=TYPE)
+    p.rect(W - 138, ay - 15, 14, 30, fill=TYPE)
     return p
 
 
@@ -526,25 +589,28 @@ def wayfinding() -> Page:
 # 15 — A-FRAME / PAVEMENT SIGN  700 x 1000 mm
 # ---------------------------------------------------------------------------
 def a_frame() -> Page:
-    p = Page(width_mm=700, height_mm=1000, bleed_mm=15, background=NAVY)
+    p = Page(width_mm=700, height_mm=1000, bleed_mm=15, background=PAPER)
     W, H = 700, 1000
-    p.rect(0, 0, W, 34, fill=YELLOW)
-    p.rect(0, H - 20, W, 20, fill=RED)
+    p.rect(0, 0, W, 14, fill=GOLD)
+    p.rect(0, H - 14, W, 14, fill=GOLD)
 
-    p.image(W / 2 - 130, 80, 260, 260, LOGO, focus=(0.5, 0.5))
-    draw(p, 0, 440, "VONLET", "cond-bold", 132, INK, 0.02,
+    p.image(W / 2 - 120, 96, 240, 240, LOGO, focus=(0.5, 0.5))
+    draw(p, 0, 470, "VONLET", "cond-bold", 132, TYPE, 0.02,
          align="center", width=W)
-    kick(p, 0, 496, "SECURITY SERVICES", SLATE_300, 36, 4.5,
-         align="center", width=W)
-    p.rect(150, 546, W - 300, 5, fill=RED)
+    label(p, 0, 512, "SECURITY SERVICES", 34, MUTED, 0.22,
+          align="center", width=W)
+    p.rect(180, 560, W - 360, 4, fill=GOLD)
 
-    draw(p, 0, 650, "MANNED", "cond-bold", 84, YELLOW, 0.01, align="center", width=W)
-    draw(p, 0, 730, "GUARDING", "cond-bold", 84, YELLOW, 0.01, align="center", width=W)
-    draw(p, 0, 810, "24 HOURS", "cond-bold", 84, INK, 0.01, align="center", width=W)
+    draw(p, 0, 690, "MANNED", "cond-bold", 88, TYPE, 0.01, align="center",
+         width=W)
+    draw(p, 0, 776, "GUARDING", "cond-bold", 88, TYPE, 0.01, align="center",
+         width=W)
+    draw(p, 0, 862, "24 HOURS", "cond-bold", 88, GOLD_INK, 0.01, align="center",
+         width=W)
 
-    kick(p, 0, 872, "CALL THE CONTROL ROOM", SLATE_400, 30, 3.4,
-         align="center", width=W)
-    draw(p, 0, 936, PHONE, "cond-bold", 54, INK, 0.01, align="center", width=W)
+    label(p, 0, 902, "CALL THE CONTROL ROOM", 26, MUTED, 0.22,
+          align="center", width=W)
+    draw(p, 0, 958, PHONE, "cond-bold", 50, TYPE, 0.01, align="center", width=W)
     return p
 
 
@@ -593,14 +659,16 @@ def main() -> None:
     # The boards are metres wide at print resolution; shrink each to a proof tile
     # first, or montage exhausts ImageMagick's memory.
     thumbs = []
-    for slug, target, _, _ in rendered:
+    for slug, _, _ in SIGNS:
+        target = OUT / f"{slug}.png"
         thumb = OUT / f".thumb-{slug}.png"
         subprocess.run(["convert", str(target), "-resize", "420x420>", "-depth", "8",
-                        str(thumb)], check=True)
+                        "-bordercolor", "#c9d0d8", "-border", "1", str(thumb)],
+                       check=True)
         thumbs.append(str(thumb))
     sheet = OUT / "contact-sheet.png"
     subprocess.run(["montage", *thumbs, "-tile", "4x", "-geometry", "420x420+10+10",
-                    "-background", "#030816", "-depth", "8", str(sheet)], check=True)
+                    "-background", "#e9ecef", "-depth", "8", str(sheet)], check=True)
     for thumb in thumbs:
         Path(thumb).unlink(missing_ok=True)
     print(f"  {'contact-sheet':<28} {'':>16}   {sheet.stat().st_size // 1024:>5} KB")

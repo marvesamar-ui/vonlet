@@ -4,6 +4,12 @@ Fifteen boards, drawn to scale in millimetres. Every file is a print-resolution
 PNG with a bleed, so a fabricator, printer or sign shop can take it straight
 into production. Sizes are finished sizes; the bleed is extra on each edge.
 
+This is the **modern edition**: paper fields, ink type, hairline structure and a
+single mustard accent, matching the website's light theme. The sizes, bleeds,
+materials, fixing heights and clear-space rules below are unchanged — only the
+design language moved. `tools/build_signage.py` carries the tokens at the top of
+the file.
+
 Four things live here:
 
 | Folder | What it is |
@@ -172,8 +178,33 @@ an exterior wall with paving, a canopy, a glass frontage and a gate pillar.
 
 ## Specification
 
-**Colour.** Navy `#030816`, signal red `#e61919`, safety yellow `#facc15`,
-white `#ffffff`, slate `#94a3b8` / `#64748b` for secondary type.
+**Colour.** Paper `#ffffff` and stone `#f1f3f5` for fields, ink `#0b0f16` for
+type (19:1 on paper), slate `#5f6a7a` for technical lines (5.5:1), brand mustard
+`#facc15` and signal red `#c81a1a`.
+
+Mustard and red are **graphics, never type on paper**: `#facc15` sits at 1.9:1 on
+white and would be unreadable at any mounting height. Where the accent has to be
+set as type it becomes `#985c06` (5.4:1), the same mustard the website uses.
+Signal red is held back for the work it does: the warning boards and the
+after-hours redirect. The hi-vis vest is the one board that stays on yellow,
+because the garment is yellow; its type is navy at 12.1:1.
+
+**Design system.** The kit is drawn as modern architectural signage rather than
+as safety signage. Four rules carry it:
+
+- **The field is the material.** Boards are white, because that is what a
+  fabricator prints on. Colour arrives as one structural element — a spine down
+  an edge or a plinth along the foot — not as bands top and bottom.
+- **Structure is hairline.** Separators are 2–3 mm rules at `#cfd6dd`, and the
+  type sits on them rather than in boxes. Nothing is outlined that does not need
+  to be.
+- **One voice per level.** Condensed ink caps for the statement, Barlow regular
+  ragged-right for body copy, letterspaced mono-style captions at 0.18–0.24 em
+  for anything technical. Body copy is never justified: stretched word gaps read
+  as damage at three metres.
+- **Air is part of the design.** Margins run at roughly 5–6% of the long edge and
+  the largest element on each board is the one thing a person needs at that
+  distance — the statement on the pylon, the number on the after-hours board.
 
 | Material | Boards | Finish |
 | --- | --- | --- |

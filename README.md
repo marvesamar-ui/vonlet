@@ -85,6 +85,27 @@ Changing the palette again means editing the token block and nothing else; the
 only rules that hard-code a colour are the photograph scrims and the two literal
 `#fff` glyphs that sit on solid red.
 
+## Intro curtain
+
+A brand beat covers the page, then lifts away: the wordmark, a mono caption, and a
+mustard rule that sweeps once. It is **pure CSS and needs no script** — the element
+is the first thing in `<body>` and its departure is a fixed animation
+(`loader-lift .4s .62s forwards`), so it is gone 1.02s after first paint whether or
+not `main.js` ever arrives. Nothing can leave a visitor behind it.
+
+- **Decorative throughout.** `aria-hidden="true"`, `pointer-events: none`, no focus
+  target and no scroll lock, so the page underneath is fully usable while it plays
+  and a click in the first second still lands on the page.
+- **Reduced motion and print remove it entirely** (`display: none`) rather than
+  animating it faster — no flash, no substitute animation.
+- **Honest by construction.** It is a timed intro, not a progress bar: no invented
+  percentage and no claim to be waiting on anything in particular.
+- **Timing.** Wordmark and caption fade up over `0–0.46s`, the mustard rule runs
+  `0.08–0.70s`, the curtain lifts `0.62–1.02s`. The assistant launcher's own
+  `STARTING ASSISTANT` beat then settles at 1.5s, so the two never compete.
+- **To retime it,** change the delay and duration on `.page-loader` in
+  `styles.css`; the lift is one declaration and the whole curtain follows it.
+
 ## Guided assistant
 
 A floating launcher opens a scripted intake; it is built to the same rules as the

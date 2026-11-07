@@ -1265,3 +1265,93 @@ dialog::backdrop { background: rgba(11, 15, 22, .42); backdrop-filter: blur(7px)
 @media (min-width: 761px) {
   .back-to-top { bottom: 92px; }
 }
+
+/* ==========================================================================
+   Intro curtain
+   A brand beat while the page settles, then it lifts away. Pure CSS on a fixed
+   timeline: it needs no script to leave, so a visitor with none — or a visitor
+   whose script failed — sees exactly the same thing and is never left staring
+   at a covered page. Decorative throughout: aria-hidden, no pointer events, and
+   absent entirely under reduced motion and in print.
+   ========================================================================== */
+
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  pointer-events: none;
+  will-change: transform;
+  animation: loader-lift .4s var(--ease) .62s forwards;
+}
+
+.page-loader-inner { display: grid; justify-items: center; gap: 9px; }
+
+/* The lockup repeats the header: condensed display caps over a mono caption.
+   Both carry a text-indent equal to their tracking so the optical centre lands
+   on the geometric one. */
+.page-loader-word {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(46px, 7.4vw, 74px);
+  font-weight: 700;
+  line-height: .9;
+  letter-spacing: .075em;
+  text-indent: .075em;
+  color: var(--ink);
+  animation: loader-word .46s var(--ease) both;
+}
+
+.page-loader-sub {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .34em;
+  text-indent: .34em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  animation: loader-word .46s var(--ease) .05s both;
+}
+
+/* A hairline track with a mustard segment running the length of it once. */
+.page-loader-rule {
+  display: block;
+  width: 180px;
+  height: 2px;
+  margin-top: 11px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.page-loader-rule i {
+  display: block;
+  width: 46%;
+  height: 100%;
+  background: var(--yellow-deep);
+  animation: loader-sweep .62s cubic-bezier(.65, 0, .35, 1) .08s both;
+}
+
+@keyframes loader-word {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes loader-sweep {
+  from { transform: translateX(-105%); }
+  to { transform: translateX(225%); }
+}
+
+@keyframes loader-lift {
+  to { transform: translateY(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader { display: none; }
+}
+
+@media print {
+  .page-loader { display: none; }
+}

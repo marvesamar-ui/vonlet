@@ -36,6 +36,7 @@ Then visit `http://localhost:8080`.
 - `tools/build_services_gallery.py` — generates the landing page's thumbnail services showcase from the `SERVICES` catalogue in `build_services.py`, so the card grid and the services page can never disagree.
 - `tools/build_card_crops.py` — writes the 800x500 card crops, one per service line. Run it after the image pipelines and before the two service generators.
 - `tools/build_services.py` — the service catalogue (slug, group, copy, points, image, dispatch mapping, source URL) and the generator that writes `services.html`.
+- `tools/stamp_assets.py` — fingerprints `styles.css` and `main.js` and writes the hash into every page's `<link>`/`<script>` URL. Run it after any stylesheet or script change.
 - `tools/apply_watermarks.py` — brands all 131 site images with the shield, choosing the plate strength from the luminance of the corner it lands in, then re-encodes to WebP/JPEG at the original dimensions.
 - `tools/layout.py` — a millimetre-grid page-layout engine on ImageMagick: 3 mm bleed, real `fontTools` glyph metrics, justified paragraphs, gradient scrims, cover-cropped images. It sets both the magazine and the signage, and `set_dpi()` lets a 5.2 m wall render at 26 dpi while an 800 mm plaque renders at 150.
 - `tools/magazine_bits.py` — shared furniture for the magazine (running heads, folios, captions, stat blocks, brand lockup).
@@ -115,6 +116,12 @@ tab, and no claims that the pages cannot support.
 - **Phones.** Below 760px the floating launcher is replaced by a fixed action bar
   — Call, WhatsApp, Assistant, Email — and the page grows a matching bottom
   padding so nothing is covered by it. The panel becomes a sheet.
+- **If it ever looks unstyled.** The stylesheet is referenced as
+  `styles.css?v=<hash>` and the script as `main.js?v=<hash>`; the hash is written
+  by `tools/stamp_assets.py` and changes whenever either file does. A widget that
+  appears as a bare button and a loose row of links means the HTML is newer than
+  the stylesheet the browser is holding — run the stamp tool and reload, rather
+  than editing the CSS.
 - **The thread is per tab.** It is written to `sessionStorage` under
   `vonlet:assistant`, which is what lets a visitor open a service link in the
   reply and come back to the same conversation. Closing the panel keeps it;
@@ -205,7 +212,16 @@ python3 tools/build_card_crops.py      # service card crops
 python3 tools/build_services.py        # services.html
 python3 tools/build_services_gallery.py # landing page showcase
 python3 tools/build_gallery.py         # featured grid + archive.html
+python3 tools/stamp_assets.py          # ?v= fingerprints on styles.css + main.js
 ```
+
+`stamp_assets.py` runs last because it is a rewrite, not a build: every page
+points at `styles.css?v=<hash>` and `main.js?v=<hash>`, so the URL changes when
+the file changes and a browser cannot pair fresh HTML with a stale stylesheet.
+Without it a visitor who loaded the site before a stylesheet change keeps the
+old rules — which is precisely what a newly added component looks like when its
+CSS never arrives. It refuses to finish if any page still points at a bare
+filename, so a new page has to be added to its `PAGES` list.
 
 ## Updating a service line
 

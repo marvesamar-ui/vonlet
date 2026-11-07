@@ -51,6 +51,7 @@
     <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 14 8-14 8V4Z"/></symbol>
     <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V4M5 11l7-7 7 7"/></symbol>
     <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.5-4.5a8.4 8.4 0 1 1 15.5-4.4Z"/><path d="M8.6 7.9c.2-.4.4-.4.6-.4h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.4 0 .6l-.5.7c-.2.2-.2.4-.1.6.4.7 1.5 1.9 2.6 2.4.2.1.5.1.7-.1l.7-.7c.2-.2.4-.2.6-.1l1.8.9c.3.1.4.3.4.5 0 .5-.2 1.4-.7 1.7-.5.4-1.3.6-2.1.4-1-.2-2.4-.8-3.7-2.1-1.3-1.3-1.9-2.7-2.1-3.7-.2-.9 0-1.7.4-2.2Z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.6 11.5a8 8 0 0 1-8.1 8 8.7 8.7 0 0 1-2.7-.4L5 20.6l1.3-4.2a7.9 7.9 0 0 1-1.5-4.9 8 8 0 0 1 8.1-8 8 8 0 0 1 7.7 8Z"/><path d="M8.9 11.6h.01M12.5 11.6h.01M16.1 11.6h.01"/></symbol>
   </svg>
 
   <header class="site-header" id="site-header">
@@ -927,6 +928,63 @@
 
   <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <!-- Guided assistant (main.js): a scripted intake, no model and no network.
+       Every path ends in a WhatsApp handoff the visitor sends themselves. -->
+  <button class="assistant-launcher" id="assistant-launcher" type="button"
+          aria-haspopup="dialog" aria-expanded="false" aria-controls="assistant-panel"
+          aria-busy="true" data-state="loading">
+    <span class="assistant-launcher-loading">
+      <span class="assistant-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="assistant-loading-text">Starting assistant</span>
+    </span>
+    <span class="assistant-launcher-ready">
+      <span class="assistant-launcher-mark" aria-hidden="true"><svg class="icon"><use href="#i-chat"/></svg></span>
+      <span class="assistant-launcher-copy">
+        <strong>Ask about security</strong>
+        <span class="assistant-launcher-meta"><span class="status-dot status-dot--yellow"></span> Guided assistant</span>
+      </span>
+    </span>
+  </button>
+
+  <div class="assistant-panel" id="assistant-panel" role="dialog" aria-modal="false" aria-labelledby="assistant-title" hidden>
+    <div class="assistant-head">
+      <span class="assistant-head-mark" aria-hidden="true"><svg class="icon"><use href="#i-shield"/></svg></span>
+      <div class="assistant-head-copy">
+        <h2 class="assistant-head-title" id="assistant-title">Vonlet assistant</h2>
+        <p class="assistant-head-sub"><span class="status-dot status-dot--yellow"></span> Scripted answers · not a person</p>
+      </div>
+      <button class="icon-button assistant-close" id="assistant-close" type="button" aria-label="Close the assistant">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <div class="assistant-log" id="assistant-log" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation with the Vonlet assistant"></div>
+    <div class="assistant-chips" id="assistant-chips" role="group" aria-label="Suggested replies"></div>
+    <form class="assistant-composer" id="assistant-composer">
+      <label class="sr-only" for="assistant-input">Type your question, or answer the assistant</label>
+      <input class="assistant-input" id="assistant-input" name="assistant-message" type="text" autocomplete="off" enterkeyhint="send" placeholder="Ask about guards, CCTV, cash-in-transit…">
+      <button class="assistant-send" type="submit" aria-label="Send message">
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg>
+      </button>
+    </form>
+    <p class="assistant-fineprint">Scripted from this site's own pages; it cannot dispatch anyone and stores nothing. The handoff opens WhatsApp with your message ready for you to send.</p>
+  </div>
+
+  <!-- Phone action bar; the floating launcher collapses into this below 760px. -->
+  <nav class="action-bar" aria-label="Quick contact">
+    <a class="action-bar-item" href="tel:+263772856852">
+      <svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg><span>Call</span>
+    </a>
+    <a class="action-bar-item" href="https://wa.me/263772856852" target="_blank" rel="noopener">
+      <svg class="icon" aria-hidden="true"><use href="#i-whatsapp"/></svg><span>WhatsApp</span>
+    </a>
+    <button class="action-bar-item action-bar-item--ask" id="action-bar-ask" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="assistant-panel">
+      <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg><span>Assistant</span>
+    </button>
+    <a class="action-bar-item" href="mailto:info@vonletsecurity.co.zw">
+      <svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><span>Email</span>
+    </a>
+  </nav>
+
   <noscript><div class="noscript-note">All 51 archive photographs and the contact details work without JavaScript. Enable JavaScript to use collection filters, full-size previews, the estimator and request preparation.</div></noscript>
 </body>
 </html>

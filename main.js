@@ -789,6 +789,518 @@
     nodes.forEach((node) => observer.observe(node));
   }
 
+  /* ---------- Guided assistant ----------
+     A scripted intake, not a model. Every reply below is written from this
+     site's own pages: nothing is fetched, nothing is sent anywhere, and the
+     only thing kept is the thread itself, in this tab's sessionStorage, so it
+     survives a jump to the services page. Each path ends in a WhatsApp
+     handoff the visitor sends themselves. To teach it a new question, add an
+     entry to ASSISTANT_ANSWERS. */
+  const ASSISTANT_STORE = "vonlet:assistant";
+  const ASSISTANT_SEEN = "vonlet:assistant-seen";
+  const ASSISTANT_HOTLINE = "+263772856852";
+  const ASSISTANT_HOTLINE_LABEL = "+263 772 856 852";
+  const ASSISTANT_EMAIL = "info@vonletsecurity.co.zw";
+  const onLandingPage = !/(?:services|archive)\.html$/.test(window.location.pathname);
+  // Sections live on the landing page; the other two pages have to cross over.
+  const siteHref = (hash) => (onLandingPage ? `#${hash}` : `index.html#${hash}`);
+
+  // What the visitor is protecting. Each answer names the lines that would be
+  // scoped for it, and the two written up in full.
+  const ASSISTANT_SITES = [
+    {
+      id: "residence",
+      chip: "Home or residence",
+      match: ["home", "house", "residential", "residence", "flat", "apartment", "estate", "cottage", "domestic", "durawall"],
+      reply: "A home is normally a static post at the gate — unarmed for access control and the register, armed where the risk calls for it — with CCTV, an intruder alarm and a panic link to the response team behind it.",
+      links: [
+        { href: "services.html#residential-security", label: "Residential security" },
+        { href: "services.html#armed-guards", label: "Armed & unarmed guards" }
+      ]
+    },
+    {
+      id: "business",
+      chip: "Shop, office or bank",
+      match: ["shop", "retail", "store", "office", "bank", "branch", "supermarket", "mall", "corporate", "hotel", "restaurant", "clinic", "school"],
+      reply: "Customer-facing premises usually run a visible officer at the door and a second post inside, backed by CCTV over the till, the safe or the terminal and access control on the staff doors. Banking and ATM duty is a line of its own.",
+      links: [
+        { href: "services.html#retail-security", label: "Retail security" },
+        { href: "services.html#bank-and-atm-security", label: "Bank & ATM posts" }
+      ]
+    },
+    {
+      id: "warehouse",
+      chip: "Warehouse or yard",
+      match: ["warehouse", "yard", "depot", "storage", "logistics", "factory", "industrial", "plant", "bond"],
+      reply: "A warehouse is a gate-and-book problem before it is a patrolling one: an officer on the gate checking loads in and out, patrols through the yard, and cameras covering the loading bays.",
+      links: [
+        { href: "services.html#warehouse-security", label: "Warehouse security" },
+        { href: "services.html#access-control-systems", label: "Access control" }
+      ]
+    },
+    {
+      id: "remote",
+      chip: "Farm, mine or remote site",
+      match: ["farm", "mine", "mining", "remote", "plot", "agricultur", "quarry", "rural", "borehole", "shaft"],
+      reply: "Farms and mines are what the electronic side is built for — a long perimeter, approaches you cannot watch from one point, and power or network that cannot be assumed. Guarding, dog patrols and monitoring are scoped together; a single officer on a large boundary is not a plan.",
+      links: [
+        { href: "services.html#farms-and-mines-security", label: "Farms & mines security" },
+        { href: "services.html#dog-services", label: "Dog services" }
+      ]
+    },
+    {
+      id: "event",
+      chip: "Event or function",
+      match: ["event", "function", "wedding", "conference", "concert", "match", "party", "crowd", "festival"],
+      reply: "Functions are covered by a short-term team — access control at the entrances, a visible presence in the room, and a response plan agreed with the organisers beforehand.",
+      links: [
+        { href: "services.html#functions-security", label: "Functions security" }
+      ]
+    },
+    {
+      id: "cash",
+      chip: "Cash movement",
+      match: ["cash", "transit", "convoy", "bullion", "collection", "deposit", "payroll", "armoured", "armored"],
+      reply: "Cash-in-transit covers task assignment, route selection and accounting for every book, run by officers in the armoured fleet. It is normally paired with a banking-hall or ATM post at the other end of the run.",
+      links: [
+        { href: "services.html#cash-in-transit", label: "Cash-in-transit" },
+        { href: "services.html#bank-and-atm-security", label: "Bank & ATM posts" }
+      ]
+    },
+    {
+      id: "other",
+      chip: "Something else",
+      match: [],
+      reply: "That is fine — the desk scopes from the risk rather than the service name. Describe the site or the problem in a sentence below, or go straight to the request form with what you have.",
+      links: []
+    }
+  ];
+
+  const ASSISTANT_TIMINGS = [
+    { label: "Today or tomorrow", match: ["today", "tomorrow", "tonight", "now", "urgent", "asap", "immediately", "emergency"] },
+    { label: "This week", match: ["week", "days", "soon", "fortnight"] },
+    { label: "Planning ahead", match: ["plan", "planning", "month", "later", "next year", "budget", "considering", "exploring", "no rush", "quote"] }
+  ];
+
+  const ASSISTANT_PLACES = [
+    { label: "Harare", match: ["harare", "queensdale", "borrowdale", "avondale", "mount pleasant"] },
+    { label: "Bulawayo", match: ["bulawayo", "byo"] },
+    { label: "Elsewhere in Zimbabwe", match: ["zimbabwe", "gweru", "mutare", "masvingo", "chinhoyi", "kwekwe", "kadoma", "hwange", "vic falls", "elsewhere"] },
+    { label: "Zambia", match: ["zambia", "lusaka", "kitwe", "ndola", "livingstone"] }
+  ];
+
+  // Free-text questions. Order matters: emergencies and contact come before
+  // the service lines, so "I need help now" never answers as a guard inquiry.
+  const ASSISTANT_ANSWERS = [
+    {
+      match: ["emergency", "urgent", "immediately", "right now", "break-in", "break in", "broke in", "intruder", "stolen", "robbery", "robbed", "attack", "attacked", "help now", "help me now"],
+      reply: `If something is happening now, do not type — call the 24/7 dispatch line on ${ASSISTANT_HOTLINE_LABEL} and the response team will take it from there. This assistant is scripted and cannot dispatch anyone.`,
+      links: [{ href: `tel:${ASSISTANT_HOTLINE}`, label: "Call the hotline now" }]
+    },
+    {
+      match: ["contact", "phone", "number", "call", "whatsapp", "email", "e-mail", "address", "office", "speak", "talk to", "human", "person", "manager", "reach you"],
+      reply: `The dispatch line is ${ASSISTANT_HOTLINE_LABEL}, answered 24/7, and ${ASSISTANT_EMAIL} reaches the office at 9 Blatherwick Road, Queensdale, Harare. The contact section of the site has the same details.`,
+      links: [
+        { href: `tel:${ASSISTANT_HOTLINE}`, label: "Call the hotline" },
+        { href: `mailto:${ASSISTANT_EMAIL}`, label: "Email the office" }
+      ]
+    },
+    {
+      match: ["price", "pricing", "cost", "how much", "rate", "rates", "quote", "quotation", "estimate", "budget", "cheap", "expensive", "afford"],
+      reply: "Rates move with the site, the hours, the officer grade and the equipment, so there is no single figure to give you. The estimator on the home page returns an indicative monthly number in USD and says plainly that it uses demonstration rates; a firm quotation comes from the desk after an assessment.",
+      links: [{ href: siteHref("estimator"), label: "Open the estimator" }]
+    },
+    {
+      match: ["where", "cover", "coverage", "area", "areas", "zimbabwe", "zambia", "harare", "bulawayo", "branch", "branches", "operate", "region", "based"],
+      reply: "Vonlet operates in Zimbabwe and Zambia. The head office is at 9 Blatherwick Road, Queensdale, Harare, with branches in both countries, and the desk deploys from there.",
+      links: [{ href: siteHref("dispatch"), label: "Contact the desk" }]
+    },
+    {
+      match: ["guard", "guards", "guarding", "manned", "static", "patrol", "patrols", "officer", "officers", "sentry", "manned guarding"],
+      reply: "Guarding is the core of the service: unarmed officers for access control, registers and visitor handling; armed officers for higher-risk posts; roving patrols and supervisory visits over the top. Every officer is trained before deployment and posted to a written site brief.",
+      links: [{ href: "services.html#armed-guards", label: "Armed & unarmed guards" }]
+    },
+    {
+      match: ["dog", "dogs", "k9", "k-9", "canine", "handler", "handlers"],
+      reply: "Service dogs and handlers work perimeter sweeps, vehicle and cargo checks, and events. Dog handling is one of the training lines as well, so a client team can be taught to work with a dog properly.",
+      links: [
+        { href: "services.html#dog-services", label: "Dog services" },
+        { href: "services.html#dog-handling-training", label: "Dog handling training" }
+      ]
+    },
+    {
+      match: ["cctv", "camera", "cameras", "surveillance", "monitor", "monitoring", "alarm", "alarms", "biometric", "access control", "electric fence", "electronic", "sensor", "sensors"],
+      reply: "Electronic security is CCTV, intruder alarms, access control and guard monitoring — specified per site, and normally supplied with the guarding rather than instead of it. Nothing here is sold off a shelf: the camera positions follow the risk.",
+      links: [
+        { href: "services.html#close-circuit-television-cctv", label: "CCTV" },
+        { href: "services.html#intruder-alarm-systems", label: "Alarm systems" },
+        { href: "services.html#access-control-systems", label: "Access control" }
+      ]
+    },
+    {
+      match: ["rapid", "response", "panic", "backup", "back-up", "back up", "alarm response"],
+      reply: "Rapid response is the armed team dispatched when an alarm or panic signal is raised. The response time agreed for a site is part of its assessment, not a claim made on a web page.",
+      links: [{ href: "services.html#rapid-response-systems", label: "Rapid response" }]
+    },
+    {
+      match: ["investigat", "escort", "escorts", "vip", "close protection", "bodyguard", "undercover", "secret service", "discreet", "protection"],
+      reply: "Close protection, private escorts, undercover posts and investigations sit under the protection line and are kept off the uniformed roster, so they do not read as a guard post.",
+      links: [
+        { href: "services.html#close-protection", label: "Close protection" },
+        { href: "services.html#private-investigations", label: "Investigations" }
+      ]
+    },
+    {
+      match: ["training", "train", "course", "courses", "firearm", "fire arm", "first aid", "drill", "certificate", "accredited"],
+      reply: "The training side covers basic guard training, firearm handling, first aid, fire drill and dog handling, run for company staff and, by arrangement, for client teams.",
+      links: [
+        { href: "services.html#basic-security-guard-training", label: "Guard training" },
+        { href: "services.html#firearm-handling", label: "Firearm handling" }
+      ]
+    },
+    {
+      match: ["licence", "license", "registered", "registration", "legal", "compliant", "compliance", "insurance", "permit", "authorised", "authorized"],
+      reply: "Licensing, insurance and compliance documents are not published on this site. Procurement should verify current documents with Vonlet directly — the footer's Licensing & compliance note says the same rather than quoting credentials that cannot be cited here.",
+      links: [{ href: `mailto:${ASSISTANT_EMAIL}`, label: "Request the documents" }]
+    },
+    {
+      match: ["hours", "open", "opening", "24", "night", "nights", "weekend", "weekends", "holiday", "always", "around the clock"],
+      reply: "The dispatch line runs 24/7, including nights, weekends and public holidays. Office hours for administration and quotations are normal Harare business hours.",
+      links: [{ href: `tel:${ASSISTANT_HOTLINE}`, label: "Call the hotline" }]
+    },
+    {
+      match: ["photo", "photos", "archive", "picture", "pictures", "gallery", "frames", "images"],
+      reply: "The company archive holds 51 published frames, one per scene, each with the brief it was taken for. The cash-in-transit images are separately labelled as generated concept art, not company photographs.",
+      links: [{ href: "archive.html", label: "Open the archive" }]
+    },
+    {
+      match: ["service", "services", "what do you do", "what can you do", "offer", "capabilities", "list", "catalogue", "catalog"],
+      reply: "Twenty-three lines in seven groups: guarding by sector, sector security, protection and investigation, K-9, electronic security, training and cash-in-transit. The catalogue page carries every one of them with its brief.",
+      links: [{ href: "services.html", label: "All 23 service lines" }]
+    },
+    {
+      match: ["hello", "hi there", "hey", "good day", "good morning", "good afternoon", "good evening", "howzit"],
+      reply: "Good day. Ask me about a service line, coverage or how a request works — or tell me what you are protecting and I will narrow it down.",
+      links: []
+    },
+    {
+      match: ["thank", "thanks", "cheers", "appreciate", "great", "perfect"],
+      reply: "Pleasure. If you would rather speak to someone, the dispatch line is the fastest route — it is answered 24/7.",
+      links: [{ href: `tel:${ASSISTANT_HOTLINE}`, label: "Call the hotline" }]
+    }
+  ];
+
+  function initAssistant() {
+    const launcher = $("#assistant-launcher");
+    const panel = $("#assistant-panel");
+    if (!launcher || !panel) return;
+    const log = $("#assistant-log");
+    const chipRow = $("#assistant-chips");
+    const form = $("#assistant-composer");
+    const input = $("#assistant-input");
+    const closeButton = $("#assistant-close");
+    const barAsk = $("#action-bar-ask");
+
+    const state = { step: "site", site: null, timing: null, place: null, notes: "" };
+    let transcript = [];
+    let opened = false;
+    let lastTrigger = launcher;
+
+    const svgIcon = (id) => {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "icon");
+      svg.setAttribute("aria-hidden", "true");
+      const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+      use.setAttribute("href", `#${id}`);
+      svg.appendChild(use);
+      return svg;
+    };
+
+    const persist = () => {
+      try {
+        sessionStorage.setItem(ASSISTANT_STORE, JSON.stringify({ transcript, state }));
+      } catch (error) {
+        /* storage can be blocked; the thread then lives only on this page */
+      }
+    };
+
+    const render = (message) => {
+      const row = document.createElement("div");
+      row.className = `assistant-msg assistant-msg--${message.role}`;
+      const bubble = document.createElement("div");
+      bubble.className = "assistant-bubble";
+      bubble.textContent = message.text;
+      (message.links || []).forEach((link) => {
+        const anchor = document.createElement("a");
+        anchor.className = "assistant-link";
+        anchor.href = link.href;
+        if (/^https?:/.test(link.href)) { anchor.target = "_blank"; anchor.rel = "noopener"; }
+        anchor.textContent = link.label;
+        anchor.appendChild(svgIcon("i-arrow"));
+        bubble.appendChild(anchor);
+      });
+      row.appendChild(bubble);
+      log.appendChild(row);
+      log.scrollTop = log.scrollHeight;
+    };
+
+    const push = (role, text, links) => {
+      const message = { role, text, links: links || [] };
+      transcript.push(message);
+      render(message);
+      persist();
+    };
+
+    const say = (text, links, after) => {
+      const row = document.createElement("div");
+      row.className = "assistant-msg assistant-msg--bot";
+      const bubble = document.createElement("div");
+      bubble.className = "assistant-bubble assistant-bubble--typing";
+      bubble.innerHTML = '<span class="assistant-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+      row.appendChild(bubble);
+      log.appendChild(row);
+      log.scrollTop = log.scrollHeight;
+      window.setTimeout(() => {
+        row.remove();
+        push("bot", text, links);
+        if (typeof after === "function") after();
+      }, prefersReducedMotion() ? 60 : 420);
+    };
+
+    const clearChips = () => { chipRow.innerHTML = ""; };
+
+    const setChips = (items) => {
+      clearChips();
+      (items || []).forEach((item) => {
+        const node = document.createElement(item.href ? "a" : "button");
+        node.className = item.primary ? "assistant-chip assistant-chip--primary" : "assistant-chip";
+        if (item.href) {
+          node.href = item.href;
+          if (/^https?:/.test(item.href)) { node.target = "_blank"; node.rel = "noopener"; }
+        } else {
+          node.type = "button";
+          node.addEventListener("click", () => {
+            clearChips();
+            item.onSelect();
+          });
+        }
+        node.textContent = item.label;
+        chipRow.appendChild(node);
+      });
+    };
+
+    const siteById = (id) => ASSISTANT_SITES.find((site) => site.id === id) || ASSISTANT_SITES[ASSISTANT_SITES.length - 1];
+    const whatsappHref = (text) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+
+    const handoffText = () => [
+      "Vonlet Security — website assistant enquiry",
+      `Site: ${siteById(state.site).chip}`,
+      `Timing: ${state.timing || "Not given"}`,
+      `Location: ${state.place || "Not given"}`,
+      `Notes: ${state.notes || "Nothing added"}`,
+      "",
+      "Please advise on cover for this site."
+    ].join("\n");
+
+    const handoffChips = () => [
+      { label: "Send on WhatsApp", href: whatsappHref(handoffText()), primary: true },
+      { label: "Call the hotline", href: `tel:${ASSISTANT_HOTLINE}` },
+      { label: "Open the estimator", href: siteHref("estimator") },
+      { label: "Start over", onSelect: reset }
+    ];
+
+    const followUpChips = () => [
+      { label: "Narrow it down for my site", onSelect: askSite },
+      { label: "Message the desk", href: whatsappHref("Hello Vonlet — I have a question from the website.") }
+    ];
+
+    // One chip set per step, so a thread restored from storage can be re-asked
+    // without replaying the questions.
+    const chipSets = {
+      site: () => ASSISTANT_SITES.map((site) => ({ label: site.chip, onSelect: () => chooseSite(site) })),
+      timing: () => ASSISTANT_TIMINGS.map((timing) => ({ label: timing.label, onSelect: () => chooseTiming(timing.label) })),
+      place: () => ASSISTANT_PLACES.map((place) => ({ label: place.label, onSelect: () => choosePlace(place.label) })),
+      notes: () => [{ label: "Skip — send what I have", onSelect: () => finish("") }],
+      done: handoffChips
+    };
+
+    const askSite = () => {
+      state.step = "site";
+      persist();
+      setChips(chipSets.site());
+    };
+
+    const applyTiming = (label) => {
+      state.timing = label;
+      state.step = "place";
+      persist();
+      say("Where is the site? Coverage and the response arrangement are planned per branch.", null, () => setChips(chipSets.place()));
+    };
+
+    const applyPlace = (label) => {
+      state.place = label;
+      state.step = "notes";
+      persist();
+      say("Last one: anything specific for the desk — access hours, a weak point, an incident you have had? Type it, or skip.", null, () => setChips(chipSets.notes()));
+    };
+
+    const finish = (note) => {
+      state.notes = note || "";
+      state.step = "done";
+      persist();
+      const site = siteById(state.site);
+      const summary = `Noted: ${site.chip.toLowerCase()}, ${(state.timing || "timing to confirm").toLowerCase()}, ${(state.place || "location to confirm").toLowerCase()}.${note ? " Your note goes with it." : ""} Send it to the desk on WhatsApp — the message is written for you, and nothing leaves this page until you press send there.`;
+      say(summary, null, () => setChips(chipSets.done()));
+    };
+
+    const reset = () => {
+      transcript = [];
+      state.step = "site";
+      state.site = null;
+      state.timing = null;
+      state.place = null;
+      state.notes = "";
+      log.innerHTML = "";
+      clearChips();
+      try { sessionStorage.removeItem(ASSISTANT_STORE); } catch (error) { /* ignore */ }
+      greet();
+    };
+
+    const greet = () => {
+      state.step = "site";
+      persist();
+      say("Good day. I am the Vonlet assistant — scripted, not a person. Tell me what you are protecting and I will narrow it down, or ask me a question about any service line.", null, () => setChips(chipSets.site()));
+    };
+
+    const applySite = (site) => {
+      state.site = site.id;
+      persist();
+      say(site.reply, site.links, () => {
+        state.step = "timing";
+        persist();
+        say("How soon do you need cover? The desk triages on this — an urgent site goes to the duty officer first.", null, () => setChips(chipSets.timing()));
+      });
+    };
+
+    const chooseSite = (site) => {
+      push("user", site.chip);
+      applySite(site);
+    };
+
+    const chooseTiming = (label) => {
+      push("user", label);
+      applyTiming(label);
+    };
+
+    const choosePlace = (label) => {
+      push("user", label);
+      applyPlace(label);
+    };
+
+    const answerFor = (text) => ASSISTANT_ANSWERS.find((answer) => answer.match.some((needle) => text.includes(needle)));
+
+    const handleInput = (raw) => {
+      const value = raw.trim();
+      if (!value) return;
+      clearChips();
+      push("user", value);
+      const text = ` ${value.toLowerCase()} `;
+
+      // A typed answer to the question on screen is treated as that answer, so
+      // the guided run is not lost the moment someone types instead of tapping.
+      if (state.step === "notes") { finish(value); return; }
+      if (state.step === "site") {
+        const site = ASSISTANT_SITES.find((candidate) => candidate.match.some((needle) => text.includes(needle)));
+        if (site) { applySite(site); return; }
+      }
+      if (state.step === "timing") {
+        const timing = ASSISTANT_TIMINGS.find((candidate) => candidate.match.some((needle) => text.includes(needle)));
+        if (timing) { applyTiming(timing.label); return; }
+      }
+      if (state.step === "place") {
+        const place = ASSISTANT_PLACES.find((candidate) => candidate.match.some((needle) => text.includes(needle)));
+        if (place) { applyPlace(place.label); return; }
+      }
+
+      const answer = answerFor(text);
+      if (answer) {
+        say(answer.reply, answer.links, () => setChips(followUpChips()));
+        return;
+      }
+
+      say("That one is not on file. The replies here are written from this site's own pages, so I would rather hand you to a person than guess. Put it to the desk on WhatsApp, or run the three questions and it will carry the shape of the job across.", null, () =>
+        setChips([
+          { label: "Put it to the desk", href: whatsappHref(`Hello Vonlet — a question from the website: ${value}`), primary: true },
+          { label: "Call the hotline", href: `tel:${ASSISTANT_HOTLINE}` },
+          { label: "Answer three questions", onSelect: askSite }
+        ]));
+    };
+
+    const setExpanded = (value) => {
+      const flag = value ? "true" : "false";
+      launcher.setAttribute("aria-expanded", flag);
+      if (barAsk) barAsk.setAttribute("aria-expanded", flag);
+    };
+
+    const restore = () => {
+      let saved = null;
+      try { saved = JSON.parse(sessionStorage.getItem(ASSISTANT_STORE) || "null"); } catch (error) { saved = null; }
+      if (!saved || !Array.isArray(saved.transcript) || !saved.transcript.length) return false;
+      transcript = saved.transcript;
+      Object.assign(state, saved.state || {});
+      transcript.forEach(render);
+      return true;
+    };
+
+    const open = (trigger) => {
+      if (opened) return;
+      opened = true;
+      lastTrigger = trigger || launcher;
+      panel.hidden = false;
+      panel.classList.add("is-open");
+      setExpanded(true);
+      try { sessionStorage.setItem(ASSISTANT_SEEN, "1"); } catch (error) { /* ignore */ }
+      if (!transcript.length && !restore()) {
+        greet();
+      } else {
+        setChips((chipSets[state.step] || chipSets.site)());
+      }
+      window.setTimeout(() => input.focus({ preventScroll: true }), 80);
+    };
+
+    const close = (restoreFocus = true) => {
+      if (!opened) return;
+      opened = false;
+      panel.hidden = true;
+      panel.classList.remove("is-open");
+      setExpanded(false);
+      if (restoreFocus && lastTrigger && document.contains(lastTrigger)) lastTrigger.focus({ preventScroll: true });
+    };
+
+    launcher.addEventListener("click", () => (opened ? close() : open(launcher)));
+    if (barAsk) barAsk.addEventListener("click", () => (opened ? close() : open(barAsk)));
+    if (closeButton) closeButton.addEventListener("click", () => close());
+    panel.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") { event.stopPropagation(); close(); }
+    });
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const value = input.value;
+      input.value = "";
+      handleInput(value);
+    });
+
+    // The launcher shows a short "starting" state first, once per tab.
+    let seen = false;
+    try { seen = sessionStorage.getItem(ASSISTANT_SEEN) === "1"; } catch (error) { seen = false; }
+    const ready = () => {
+      launcher.dataset.state = "ready";
+      launcher.removeAttribute("aria-busy");
+    };
+    if (seen || prefersReducedMotion()) ready();
+    else window.setTimeout(ready, 1500);
+  }
+
   /* ---------- Boot ---------- */
   function restorePendingRequest() {
     let pending = null;
@@ -826,6 +1338,7 @@
     initContact();
     initInfoDialogs();
     initServiceFilters();
+    initAssistant();
 
     const lightbox = createLightbox((item) => {
       const message = `I'm interested in ${item.title}. Please advise on options for my site.`;

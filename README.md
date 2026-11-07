@@ -18,7 +18,7 @@ Then visit `http://localhost:8080`.
 - **The services section is thumbnail-first.** It is a bento grid generated from the service catalogue: a lead card 2x2 in size (photograph, group, name, summary, three inclusions, a *Request a survey* button and a link to the full line), then one photograph card for each of the other twenty-two lines, each with its own request shortcut. Group tabs filter the grid client-side without a page load — the full grid is rendered statically, so nothing is hidden from a visitor without JavaScript. A sector strip for the eight sector / escort / investigation lines closes the section. Regenerate it with `python3 tools/build_services_gallery.py`; the markup lives between the `SERVICES:START` / `SERVICES:END` markers.
 - `archive.html` — the 51-photograph archive, one frame per scene, with collection filters and the shared lightbox.
 - `services.html` — all twenty-three service lines in full, opening on a thumbnail index of the whole catalogue (one photograph, group and name per line, linking down to its block), then jump chips and the full blocks with per-service request buttons; each published line carries a source link back to the page it came from, and each client-supplied line says so instead.
-- `styles.css` — design tokens, self-hosted fonts, grid/flex layouts, HUD styling, animations and responsive breakpoints.
+- `styles.css` — the light-theme design tokens (see [Theme](#theme)), self-hosted fonts, grid/flex layouts, HUD styling, animations and responsive breakpoints.
 - `main.js` — modular navigation, focus-trapped dialogs, archive filters, lightbox, counters, live estimator, form validation and email handoff.
 - `assets/images/thumbs/` — 640px WebP derivatives used in the archive grid and the service cards (51 files).
 - `assets/images/full/` — 1600px WebP derivatives used in the lightbox, hero and service blocks (51 files).
@@ -46,6 +46,43 @@ Then visit `http://localhost:8080`.
 - `tools/build_signage_lighting.py` — ten illuminated signage designs, drawn in millimetres and composited into dusk scenes with a physical lighting rig.
 - `tools/lighting.py` — the lighting rig for the illuminated set: halo/bloom falloff, spot pools and wash cones, backlit panels, brushed metal, acrylic edge glow.
 - `tools/insitu.py` — the compositing engine: homography warp, wall-matched lighting, extruded panel edges, contact shadows, substrate grain.
+
+## Theme
+
+The site is set in a light theme: a paper field, near-black ink and red/yellow
+accents. Every colour comes from the tokens at the top of `styles.css`, and the
+tokens are named for their job rather than their old hue, so a card face is
+`--surface`, the page is `--paper` and body text is `--ink`.
+
+- **Two steps of paper.** `--paper` (`#ffffff`) is the page; `--paper-alt`
+  (`#f6f7f9`) is the tinted band used by the fleet, cash-in-transit, about and
+  estimator sections and by the footer, so alternating sections separate without
+  a border. Cards are `--surface` on both.
+- **The accent splits in two.** `--yellow` is still the brand safety yellow and
+  is only ever a *fill* — active filter pills, checked boxes, status dots,
+  legends, the estimator's top rule. Wherever the yellow is type or an icon it
+  becomes `--yellow-ink` (`#985c06`, the mustard the magazine's light edition
+  uses), because `#facc15` on paper sits near 1.6:1. Text on a yellow fill uses
+  `--on-accent`.
+- **Scrims follow the ink.** The hero photograph is daylight, so `.hero-shade`
+  runs from opaque paper under the headline to clear at the right edge — the
+  type is dark, so the veil is light. The dark overlays that remain (the
+  lightbox counter, the dialog backdrop) sit over photographs, where they still
+  do their job.
+- `--red` (`#c81a1a`) and `--red-soft` (`#9e1414`) carry the emergency and error
+  text at AA; the old pastel `#fca5a5` would not read on paper.
+- Body ink is `--ink-2` (`#2b3440`), secondary copy `--ink-muted` (`#46505e`) and
+  8-9px meta `--ink-faint` (`#5f6a7a`); all three clear 4.5:1 on both paper
+  tones. Headings and figures use `--ink` (`#0b0f16`).
+- `<meta name="theme-color">` and `<meta name="color-scheme">` are set to the
+  light field in all three pages, and `:root` declares `color-scheme: light` so
+  native select menus, date pickers and scrollbars render light too — the
+  `background-color` on `.field select option` is only a fallback for browsers
+  that ignore it.
+
+Changing the palette again means editing the token block and nothing else; the
+only rules that hard-code a colour are the photograph scrims and the two literal
+`#fff` glyphs that sit on solid red.
 
 ## Magazine and signage
 

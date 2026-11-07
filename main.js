@@ -1259,7 +1259,6 @@
       panel.hidden = false;
       panel.classList.add("is-open");
       setExpanded(true);
-      try { sessionStorage.setItem(ASSISTANT_SEEN, "1"); } catch (error) { /* ignore */ }
       if (!transcript.length && !restore()) {
         greet();
       } else {
@@ -1290,12 +1289,16 @@
       handleInput(value);
     });
 
-    // The launcher shows a short "starting" state first, once per tab.
+    // The launcher shows a short "starting" state first, once per tab. The flag
+    // is written when the state settles rather than when the panel is opened, so
+    // a visitor who never opens it still gets the animation once, and moving
+    // between pages in the same tab never replays it.
     let seen = false;
     try { seen = sessionStorage.getItem(ASSISTANT_SEEN) === "1"; } catch (error) { seen = false; }
     const ready = () => {
       launcher.dataset.state = "ready";
       launcher.removeAttribute("aria-busy");
+      try { sessionStorage.setItem(ASSISTANT_SEEN, "1"); } catch (error) { /* ignore */ }
     };
     if (seen || prefersReducedMotion()) ready();
     else window.setTimeout(ready, 1500);

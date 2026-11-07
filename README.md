@@ -109,10 +109,13 @@ tab, and no claims that the pages cannot support.
   `ASSISTANT_PLACES` and `ASSISTANT_ANSWERS` at the top of the assistant module in
   `main.js`. Adding a question is one more entry in `ASSISTANT_ANSWERS`; the
   matching is plain substring tests against a lower-cased message.
-- **Loading and motion.** The launcher shows a short `STARTING ASSISTANT` state
-  on first sight, then settles; a tab that has already seen it skips straight to
-  the launcher. Reduced-motion visitors never see the pulse, and the typing delay
-  collapses to a frame.
+- **Loading and motion.** The launcher opens in a `STARTING ASSISTANT` state —
+  three pulsing dots for 1.5s — then swaps to the ready pill. The
+  `vonlet:assistant-seen` flag is written when that state settles, not when the
+  panel is opened, so the animation plays once per tab whether or not the visitor
+  ever opens it, and it does not replay as they move between the landing page,
+  the services page and the archive. Reduced-motion visitors skip both the wait
+  and the pulse, and the typing delay collapses to a frame.
 - **Phones.** Below 760px the floating launcher is replaced by a fixed action bar
   — Call, WhatsApp, Assistant, Email — and the page grows a matching bottom
   padding so nothing is covered by it. The panel becomes a sheet.

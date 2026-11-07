@@ -50,40 +50,47 @@ Then visit `http://localhost:8080`.
 
 ## Theme
 
-The site is set in a light theme: a paper field, near-black ink and red/yellow
-accents. Every colour comes from the tokens at the top of `styles.css`, and the
-tokens are named for their job rather than their old hue, so a card face is
-`--surface`, the page is `--paper` and body text is `--ink`.
+The site is set in a light blue theme: a pale blue page, white card faces, a
+blue-black ink and a light-blue accent with a mid-blue edge. Every colour comes
+from the tokens at the top of `styles.css`, and the tokens are named for their
+job rather than their hue, so a card face is `--surface`, the page is `--paper`,
+body text is `--ink` and the accent is `--accent`.
 
-- **Two steps of paper.** `--paper` (`#ffffff`) is the page; `--paper-alt`
-  (`#f6f7f9`) is the tinted band used by the fleet, cash-in-transit, about and
+- **Two steps of blue paper.** `--paper` (`#e9f2fb`) is the page; `--paper-alt`
+  (`#dfecf9`) is the tinted band used by the fleet, cash-in-transit, about and
   estimator sections and by the footer, so alternating sections separate without
-  a border. Cards are `--surface` on both.
-- **The accent splits in two.** `--yellow` is still the brand safety yellow and
-  is only ever a *fill* — active filter pills, checked boxes, status dots,
-  legends, the estimator's top rule. Wherever the yellow is type or an icon it
-  becomes `--yellow-ink` (`#985c06`, the mustard the magazine's light edition
-  uses), because `#facc15` on paper sits near 1.6:1. Text on a yellow fill uses
-  `--on-accent`.
+  a border. Cards are `--surface` white on both, which is what keeps the blue
+  reading as paper rather than as a wash.
+- **The accent has three weights, and they are not interchangeable.**
+  `--accent` (`#bcdcf7`) is a *fill* — the tile the brand mark sits in, active
+  filter pills, checked boxes, the selection colour — with `--on-accent` ink on
+  it at 12.5:1. `--accent-deep` (`#4589c1`) is the edge, the status dot and
+  anything that has to separate from paper (3.3:1, the non-text minimum).
+  `--accent-ink` (`#0d5c96`) is the accent as *type*, 6.2:1 on paper: a pale blue
+  used as text would sit at 1.3:1 and fail outright. The only place the pale fill
+  is set as type is the assistant header, which is ink.
 - **Scrims follow the ink.** The hero photograph is daylight, so `.hero-shade`
   runs from opaque paper under the headline to clear at the right edge — the
   type is dark, so the veil is light. The dark overlays that remain (the
   lightbox counter, the dialog backdrop) sit over photographs, where they still
   do their job.
-- `--red` (`#c81a1a`) and `--red-soft` (`#9e1414`) carry the emergency and error
-  text at AA; the old pastel `#fca5a5` would not read on paper.
-- Body ink is `--ink-2` (`#2b3440`), secondary copy `--ink-muted` (`#46505e`) and
-  8-9px meta `--ink-faint` (`#5f6a7a`); all three clear 4.5:1 on both paper
-  tones. Headings and figures use `--ink` (`#0b0f16`).
-- `<meta name="theme-color">` and `<meta name="color-scheme">` are set to the
-  light field in all three pages, and `:root` declares `color-scheme: light` so
-  native select menus, date pickers and scrollbars render light too — the
-  `background-color` on `.field select option` is only a fallback for browsers
-  that ignore it.
+- `--red` (`#c11616`) and `--red-strong` (`#96100f`) carry the emergency and
+  error text at 5.5:1 on paper; `--green` (`#146b36`) carries the "on duty"
+  status at 5.8:1. Both were deepened for the blue field — the previous values
+  fell under AA once the surfaces tinted.
+- Body ink is `--ink-2` (`#24384d`, 10.6:1), secondary copy `--ink-muted`
+  (`#3e5469`, 6.9:1) and 8-9px meta `--ink-faint` (`#4e6377`, 5.5:1 on paper and
+  4.9:1 on the deepest sunken panel); all three clear 4.5:1 on every surface in
+  the sheet. Headings and figures use `--ink` (`#06182b`, 15.8:1).
+- `<meta name="theme-color">` is `#e9f2fb`, matching the page, and
+  `color-scheme: light` is declared in `:root` and in the pages so native select
+  menus, date pickers and scrollbars render light too — the `background-color` on
+  `.field select option` is only a fallback for browsers that ignore it.
 
-Changing the palette again means editing the token block and nothing else; the
-only rules that hard-code a colour are the photograph scrims and the two literal
-`#fff` glyphs that sit on solid red.
+Changing the palette again means editing the token block and the handful of
+alpha tints that cannot be expressed as a token (focus rings, the checked-box
+wash, the status-dot halo); everything else follows. The contrast of every text
+pair in the sheet was measured, not assumed.
 
 ## Intro curtain
 
